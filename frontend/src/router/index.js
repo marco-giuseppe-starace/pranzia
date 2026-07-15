@@ -3,6 +3,11 @@ import LandingView from '../views/LandingView.vue'
 import MenuView from '../views/MenuView.vue'
 import ChatView from '../views/ChatView.vue'
 import CartView from '../views/CartView.vue'
+import AdminLoginView from '../views/admin/AdminLoginView.vue'
+import AdminOrdersView from '../views/admin/AdminOrdersView.vue'
+import AdminMenuView from '../views/admin/AdminMenuView.vue'
+import AdminAiCostsView from '../views/admin/AdminAiCostsView.vue'
+import { useAdminAuthStore } from '../stores/adminAuth.js'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -11,8 +16,38 @@ const router = createRouter({
     { path: '/menu', name: 'menu', component: MenuView },
     { path: '/chat', name: 'chat', component: ChatView },
     { path: '/cart', name: 'cart', component: CartView },
+    { path: '/admin/login', name: 'admin-login', component: AdminLoginView },
+    {
+      path: '/admin/orders',
+      name: 'admin-orders',
+      component: AdminOrdersView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/menu',
+      name: 'admin-menu',
+      component: AdminMenuView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/ai-costs',
+      name: 'admin-ai-costs',
+      component: AdminAiCostsView,
+      meta: { requiresAdmin: true },
+    },
     { path: '/', redirect: '/menu' },
   ],
+})
+
+// Rotte /admin/* (tranne il login) richiedono un token Sanctum valido:
+// senza, si viene rediretti al login admin.
+router.beforeEach((to) => {
+  if (to.meta.requiresAdmin) {
+    const adminAuth = useAdminAuthStore()
+    if (!adminAuth.isAuthenticated) {
+      return { name: 'admin-login' }
+    }
+  }
 })
 
 export default router
