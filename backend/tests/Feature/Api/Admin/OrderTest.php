@@ -28,3 +28,30 @@ it('filters orders by status', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.status', OrderStatus::Served->value);
 });
+
+it('rejects unauthenticated status updates', function () {
+    $order = Order::factory()->create();
+
+    $this->patchJson("/api/admin/orders/{$order->id}/status", ['status' => 'preparing'])
+        ->assertUnauthorized();
+});
+
+it('advances an order status from the kitchen dashboard', function () {
+    Sanctum::actingAs(User::factory()->create());
+    $order = Order::factory()->create(['status' => OrderStatus::Pending]);
+
+    $this->patchJson("/api/admin/orders/{$order->id}/status", ['status' => 'preparing'])
+        ->assertOk()
+        ->assertJsonPath('data.status', OrderStatus::Preparing->value);
+
+    expect($order->fresh()->status)->toBe(OrderStatus::Preparing);
+});
+
+it('rejects an invalid status value', function () {
+    Sanctum::actingAs(User::factory()->create());
+    $order = Order::factory()->create();
+
+    $this->patchJson("/api/admin/orders/{$order->id}/status", ['status' => 'not-a-status'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('status');
+});

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AiCostController;
 use App\Http\Controllers\Api\Admin\AllergenController;
 use App\Http\Controllers\Api\Admin\AuthController;
+use App\Http\Controllers\Api\Admin\MenuCategoryController;
 use App\Http\Controllers\Api\Admin\MenuItemController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\AiController;
@@ -32,8 +33,10 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::apiResource('menu-items', MenuItemController::class)->except(['show']);
+        Route::apiResource('menu-categories', MenuCategoryController::class)->except(['show']);
         Route::apiResource('allergens', AllergenController::class)->except(['show']);
         Route::get('/orders', [AdminOrderController::class, 'index']);
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus']);
         Route::get('/ai-costs', [AiCostController::class, 'index']);
     });
 });
