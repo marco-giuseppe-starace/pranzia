@@ -5,6 +5,7 @@ use App\Enums\TableSessionStatus;
 use App\Models\AiInteraction;
 use App\Models\Allergen;
 use App\Models\MenuItem;
+use App\Models\Order;
 use App\Models\TableSession;
 use App\Services\Ai\AiAssistantService;
 use App\Services\Ai\ClaudeClient;
@@ -48,6 +49,23 @@ it('never sends an empty message to Claude when no context is provided', functio
     $this->postJson('/api/ai/recommend', ['session_id' => $session->id])->assertOk();
 
     expect($this->fakeClient->calls[0]['userMessage'])->not->toBe('');
+});
+
+it('includes the real table spend so the ai can answer bill-splitting questions', function () {
+    // Il conto del tavolo deve venire dal DB (somma ordini reali), mai
+    // ricalcolato o stimato dall'IA: cosi' puo' rispondere correttamente a
+    // "quanto abbiamo speso" o "dividiamo per 4 persone".
+    $session = TableSession::factory()->create();
+    MenuItem::factory()->create();
+    Order::factory()->create(['session_id' => $session->id, 'total' => 42.50]);
+    Order::factory()->create(['session_id' => $session->id, 'total' => 17.50]);
+
+    $this->postJson('/api/ai/ask', [
+        'session_id' => $session->id,
+        'question' => 'Quanto abbiamo speso finora?',
+    ])->assertOk();
+
+    expect($this->fakeClient->calls[0]['system'])->toContain('60.00 euro');
 });
 
 it('answers a free question using the haiku model', function () {

@@ -29,6 +29,13 @@ Regole vincolanti per qualunque funzionalità che usa Claude API in Pranzia.
    limitati a 10 richieste/minuto **per sessione tavolo** (non per IP), per
    non penalizzare un tavolo condiviso da più persone.
 
+7. **Conto del tavolo: dato reale, non stimato.** Il totale già speso dal
+   tavolo (somma di `orders.total` per la sessione) viene passato nel
+   system prompt come unica fonte di verità, così l'IA può rispondere a
+   domande su spesa e divisione del conto tra più persone (es. "quanto
+   abbiamo speso?", "dividiamo per 4?") senza mai ricalcolare o inventare
+   importi. Vedi `AiAssistantService::call()` e `SystemPromptBuilder`.
+
 ## Modelli usati
 - **Haiku** (`claude-haiku-4-5`): `POST /api/ai/ask` — traduzione e domande
   libere sui piatti (alto volume, task semplici)

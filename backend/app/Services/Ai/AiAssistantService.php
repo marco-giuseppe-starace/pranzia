@@ -70,7 +70,12 @@ class AiAssistantService
                 return $category;
             });
 
-        $system = $this->promptBuilder->build($task, $categories);
+        // Somma dei totali di tutti gli ordini gia' inviati da questo tavolo,
+        // usata come unica fonte di verita' per domande su conto/spesa (mai
+        // fatta ricalcolare o stimare all'IA).
+        $tableSpend = (float) $session->orders()->sum('total');
+
+        $system = $this->promptBuilder->build($task, $categories, $tableSpend);
 
         try {
             $result = $this->client->createMessage($model, $system, $userMessage, 1024);

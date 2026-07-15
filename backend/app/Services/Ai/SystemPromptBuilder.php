@@ -23,9 +23,17 @@ class SystemPromptBuilder
            questo ristorante.
         5. Tono caldo, diretto, conviviale - come un consiglio di un amico
            esperto di cibo, non un'interfaccia da software gestionale.
+        6. Rispondi sempre in testo semplice: niente markdown (asterischi,
+           elenchi puntati, titoli) e nessuna emoji o emoticon. Usa frasi
+           brevi separate da a capo, se serve elencare più opzioni.
+        7. Per domande sul conto o sulla spesa del tavolo, usa SOLO il totale
+           indicato qui sotto: non ricalcolarlo dal menu ne' inventarlo. Se
+           il cliente chiede di dividerlo tra piu' persone, dividi quel
+           totale per il numero di persone indicato e mostra il risultato
+           per persona.
         TEXT;
 
-    public function build(string $task, Collection $categories): string
+    public function build(string $task, Collection $categories, float $tableSpend = 0.0): string
     {
         $menuJson = json_encode(
             $categories->map(fn (MenuCategory $category) => [
@@ -41,9 +49,10 @@ class SystemPromptBuilder
         );
 
         return sprintf(
-            "Sei l'assistente virtuale di Pranzia, un ristorante italiano.\n\nCompito richiesto: %s\n\n%s\n\nMenu disponibile (unica fonte di verita'):\n%s",
+            "Sei l'assistente virtuale di Pranzia, un ristorante italiano.\n\nCompito richiesto: %s\n\n%s\n\nConto attuale del tavolo (unica fonte di verita', gia' comprensivo di tutti gli ordini inviati finora): %.2f euro\n\nMenu disponibile (unica fonte di verita'):\n%s",
             $task,
             self::GUARDRAILS,
+            $tableSpend,
             $menuJson
         );
     }
