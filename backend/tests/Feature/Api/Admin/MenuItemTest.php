@@ -33,8 +33,19 @@ it('creates a menu item with allergens', function () {
 
     $response->assertCreated()
         ->assertJsonPath('data.name', 'Tiramisu')
+        ->assertJsonPath('data.category_id', $category->id)
         ->assertJsonPath('data.available', true)
         ->assertJsonPath('data.allergens.0.id', $allergen->id);
+});
+
+it('includes category_id so the admin panel can group items by category', function () {
+    Sanctum::actingAs(User::factory()->create());
+    $category = MenuCategory::factory()->create();
+    MenuItem::factory()->for($category, 'category')->create();
+
+    $this->getJson('/api/admin/menu-items')
+        ->assertOk()
+        ->assertJsonPath('data.0.category_id', $category->id);
 });
 
 it('validates required fields when creating a menu item', function () {
