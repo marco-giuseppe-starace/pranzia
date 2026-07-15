@@ -16,6 +16,9 @@ class AiAskRequest extends FormRequest
         return [
             'session_id' => ['required', 'integer', 'exists:table_sessions,id'],
             'question' => ['required', 'string', 'max:500'],
+            // Lingua correntemente selezionata nell'interfaccia: se presente,
+            // sovrascrive la lingua di sessione solo per questa chiamata IA.
+            'language' => ['nullable', 'string', 'max:5'],
         ];
     }
 }

@@ -9,6 +9,8 @@ use App\Http\Requests\AiRecommendRequest;
 use App\Models\TableSession;
 use App\Services\Ai\AiAssistantService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AiController extends Controller
 {
@@ -23,9 +25,7 @@ class AiController extends Controller
             return $session;
         }
 
-        $text = $this->ai->recommend($session, $request->input('context'));
-
-        return response()->json(['text' => $text]);
+        return $this->safeCall(fn () => $this->ai->recommend($session, $request->input('context')));
     }
 
     public function ask(AiAskRequest $request): JsonResponse
@@ -35,9 +35,7 @@ class AiController extends Controller
             return $session;
         }
 
-        $text = $this->ai->ask($session, $request->string('question'));
-
-        return response()->json(['text' => $text]);
+        return $this->safeCall(fn () => $this->ai->ask($session, $request->string('question'), $request->input('language')));
     }
 
     private function activeSessionOrFail(int $sessionId): TableSession|JsonResponse
@@ -49,5 +47,21 @@ class AiController extends Controller
         }
 
         return $session;
+    }
+
+    // Non lasciamo mai trapelare il messaggio di eccezione grezzo dell'SDK
+    // Anthropic (potrebbe contenere dettagli interni) al cliente finale.
+    // AiAssistantService::call() ha gia' loggato l'interazione fallita.
+    private function safeCall(callable $callback): JsonResponse
+    {
+        try {
+            return response()->json(['text' => $callback()]);
+        } catch (Throwable $e) {
+            Log::warning('Chiamata Claude API fallita', ['exception' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Il servizio IA non e\' al momento disponibile. Riprova tra poco.',
+            ], 502);
+        }
     }
 }

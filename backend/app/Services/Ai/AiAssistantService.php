@@ -32,10 +32,14 @@ class AiAssistantService
         return $this->call($session, AiInteractionType::Recommendation, $model, $task, $context ?? '');
     }
 
-    public function ask(TableSession $session, string $question): string
+    public function ask(TableSession $session, string $question, ?string $language = null): string
     {
         $model = config('services.anthropic.model_ask');
-        $task = "Rispondi alla domanda del cliente, traducendo nella sua lingua se necessario ({$session->language}).";
+        // $language e' un hint dal frontend (lingua correntemente selezionata
+        // nell'interfaccia), usato al posto di $session->language che resta
+        // quella impostata all'avvio sessione e non viene mai aggiornata.
+        $targetLanguage = $language ?? $session->language;
+        $task = "Rispondi alla domanda del cliente, traducendo nella sua lingua se necessario ({$targetLanguage}).";
 
         return $this->call($session, AiInteractionType::Translation, $model, $task, $question);
     }

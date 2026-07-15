@@ -52,6 +52,19 @@ it('answers a free question using the haiku model', function () {
     expect(AiInteraction::first()->type)->toBe(AiInteractionType::Translation);
 });
 
+it('uses the language passed by the frontend instead of the session language', function () {
+    $session = TableSession::factory()->create(['language' => 'it']);
+
+    $this->postJson('/api/ai/ask', [
+        'session_id' => $session->id,
+        'question' => 'What is in the tiramisu?',
+        'language' => 'en',
+    ])->assertOk();
+
+    expect($this->fakeClient->calls[0]['system'])->toContain('(en)')
+        ->not->toContain('traducendo nella sua lingua se necessario (it)');
+});
+
 it('never sends unavailable menu items to the model', function () {
     $session = TableSession::factory()->create();
     MenuItem::factory()->create(['name' => 'Piatto Disponibile', 'available' => true]);
@@ -77,6 +90,18 @@ it('validates required fields', function () {
     $this->postJson('/api/ai/ask', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['session_id', 'question']);
+});
+
+it('never leaks the raw Claude API exception message to the client', function () {
+    $this->fakeClient->shouldThrow = true;
+    $session = TableSession::factory()->create();
+
+    $response = $this->postJson('/api/ai/ask', ['session_id' => $session->id, 'question' => 'Ciao']);
+
+    $response->assertStatus(502)
+        ->assertJsonPath('message', 'Il servizio IA non e\' al momento disponibile. Riprova tra poco.')
+        ->assertJsonMissingPath('text');
+    expect($response->getContent())->not->toContain('Errore simulato Claude API');
 });
 
 it('logs a zero-cost interaction when the Claude API call fails', function () {
