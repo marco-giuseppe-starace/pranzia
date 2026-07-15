@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        // Haiku per traduzione/domande libere, Sonnet per consigli/upselling
+        // (dove serve piu' qualita' di ragionamento) - scelta per contenere i
+        // costi su un ristorante singolo (vedi docs/ia-guardrail.md).
+        'model_recommend' => env('ANTHROPIC_MODEL_RECOMMEND', 'claude-sonnet-4-6'),
+        'model_ask' => env('ANTHROPIC_MODEL_ASK', 'claude-haiku-4-5'),
+    ],
+
 ];
