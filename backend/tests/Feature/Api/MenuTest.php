@@ -26,3 +26,17 @@ it('returns an empty menu when no categories exist', function () {
         ->assertOk()
         ->assertJsonCount(0, 'data');
 });
+
+it('excludes menu items containing the given allergens, based on verified data only', function () {
+    $category = MenuCategory::factory()->create();
+    $glutine = Allergen::factory()->create(['name' => 'Glutine']);
+    $safeItem = MenuItem::factory()->for($category, 'category')->create(['name' => 'Insalata']);
+    $unsafeItem = MenuItem::factory()->for($category, 'category')->create(['name' => 'Pasta']);
+    $unsafeItem->allergens()->attach($glutine);
+
+    $response = $this->getJson("/api/menu?exclude_allergens={$glutine->id}");
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data.0.menu_items')
+        ->assertJsonPath('data.0.menu_items.0.id', $safeItem->id);
+});
