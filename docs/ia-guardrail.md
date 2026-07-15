@@ -3,38 +3,51 @@
 Regole vincolanti per qualunque funzionalità che usa Claude API in Pranzia.
 
 1. **Chiave API solo backend.** La chiave Claude vive esclusivamente nel
-   backend Laravel, mai esposta al frontend o nel bundle Vue.
+   backend Laravel (`ANTHROPIC_API_KEY` in `.env`), mai esposta al frontend o
+   nel bundle Vue. `App\Services\Ai\AnthropicSdkClient` è l'unico punto che
+   istanzia l'SDK.
 
-2. **Mai piatti o prezzi inventati.** Il prompt di sistema deve vincolare
-   l'IA a rispondere solo sulla base del menu reale passato come contesto
-   strutturato (query dal database, non testo libero).
+2. **Mai piatti o prezzi inventati.** Il system prompt (`SystemPromptBuilder`)
+   passa il menu reale come contesto JSON strutturato (query dal database) e
+   vincola esplicitamente l'IA a rispondere solo su quella base.
 
 3. **Allergeni: dato verificato, non inferenza.** Le informazioni sugli
    allergeni provengono **sempre** dalla tabella `menu_item_allergens`,
    compilata manualmente e verificata dallo staff — mai da un'inferenza del
-   modello IA. Vedi `docs/database.md`.
+   modello IA. Vedi `docs/database.md`. Il filtro `GET /api/menu?exclude_allergens=`
+   è puramente lato database, nessuna chiamata IA coinvolta.
 
-4. **Disclaimer obbligatorio.** Ogni risposta relativa ad allergie deve
-   includere: *"verifica con lo staff in caso di allergie gravi"*.
+4. **Disclaimer obbligatorio.** Il system prompt istruisce l'IA a includere,
+   testuale, in ogni risposta relativa ad allergie: *"Verifica sempre con lo
+   staff in caso di allergie gravi."*
 
-5. **Logging costi.** Ogni chiamata IA va loggata in `ai_interactions`
-   (tokens input/output, costo stimato) per il monitoraggio della spesa
-   mensile — vedi endpoint `/api/admin/ai-costs`.
+5. **Logging costi.** Ogni chiamata IA (riuscita o fallita) crea un record in
+   `ai_interactions` (tokens input/output, costo stimato) — vedi
+   `AiAssistantService::log()` e il report `GET /api/admin/ai-costs`.
 
-6. **Rate limiting.** Limitare le chiamate IA per sessione tavolo, per
-   evitare abusi e costi eccessivi.
+6. **Rate limiting.** `POST /api/ai/recommend` e `POST /api/ai/ask` sono
+   limitati a 10 richieste/minuto **per sessione tavolo** (non per IP), per
+   non penalizzare un tavolo condiviso da più persone.
 
 ## Modelli usati
-- **Haiku**: traduzione, filtri allergeni (task semplici, alto volume)
-- **Sonnet**: consigli/upselling quando serve più qualità di ragionamento
+- **Haiku** (`claude-haiku-4-5`): `POST /api/ai/ask` — traduzione e domande
+  libere sui piatti (alto volume, task semplici)
+- **Sonnet** (`claude-sonnet-4-6`): `POST /api/ai/recommend` — consigli e
+  upselling, dove serve più qualità di ragionamento
+
+Configurabili via `ANTHROPIC_MODEL_ASK` / `ANTHROPIC_MODEL_RECOMMEND` in
+`.env` (default sopra).
 
 ## Stima costi
 ~400 interazioni/giorno (100 coperti × 4 interazioni) → ~12.000/mese
 - Con Haiku: ~€15-20/mese
 - Con Sonnet: ~€45-50/mese
 
+Costo reale monitorabile in tempo reale via `GET /api/admin/ai-costs`.
+
 ## Stato
-Nessuna di queste regole è ancora implementata nel codice: sarà oggetto della
-Milestone 4 (integrazione IA) — issue GitHub "Servizio wrapper Claude API",
-"Prompt di sistema e guardrail", "Filtro allergeni basato su dati verificati",
-"Logging costi e token".
+Milestone 4 (integrazione IA) completata: wrapper Claude API, endpoint
+consigli/domande, filtro allergeni, guardrail nel prompt, logging costi e
+rate limiting sono tutti implementati e testati (con client Claude finto,
+nessuna chiamata reale nei test). **Per l'uso reale serve una
+`ANTHROPIC_API_KEY` valida in `backend/.env`.**
