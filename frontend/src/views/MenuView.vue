@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { api } from '../api/client.js'
 import { useI18n } from '../i18n/index.js'
 import MenuItemCard from '../components/MenuItemCard.vue'
@@ -10,9 +10,15 @@ const categories = ref([])
 const excludedAllergenIds = ref([])
 const loading = ref(true)
 
-const allAllergens = computed(() => {
+// Calcolato una sola volta dal menu NON filtrato: se derivasse da `categories`
+// (gia' filtrato), un allergene escluso sparirebbe dalla lista dei filtri
+// stessi non appena nasconde tutti i piatti che lo contengono, rendendo
+// impossibile deselezionarlo.
+const allAllergens = ref([])
+
+function extractAllergens(fullCategories) {
   const byId = new Map()
-  for (const category of categories.value) {
+  for (const category of fullCategories) {
     for (const item of category.menu_items) {
       for (const allergen of item.allergens) {
         byId.set(allergen.id, allergen)
@@ -20,7 +26,7 @@ const allAllergens = computed(() => {
     }
   }
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name))
-})
+}
 
 async function loadMenu() {
   loading.value = true
@@ -29,6 +35,9 @@ async function loadMenu() {
     : ''
   const response = await api.get(`/menu${query}`)
   categories.value = response.data
+  if (!excludedAllergenIds.value.length) {
+    allAllergens.value = extractAllergens(response.data)
+  }
   loading.value = false
 }
 
