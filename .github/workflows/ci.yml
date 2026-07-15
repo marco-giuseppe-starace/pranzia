@@ -82,3 +82,93 @@ jobs:
 
       - name: Build di produzione
         run: npm run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    # Stesso servizio MySQL del job backend: la suite E2E gira contro un
+    # backend Laravel e un frontend Vue veri, non contro mock.
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: pranzia
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Installa dipendenze Composer
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepara database e tavolo di prova
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --seed --force
+          php artisan e2e:seed-table demo-qr-e2e
+
+      - name: Avvia il backend
+        working-directory: backend
+        run: |
+          php artisan serve --port=8000 &
+          timeout 30 bash -c 'until curl -sf http://localhost:8000/api/menu >/dev/null; do sleep 1; done'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installa dipendenze npm
+        working-directory: frontend
+        run: npm ci
+
+      - name: Installa Chromium per Playwright
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Build frontend (punta al backend di test)
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:8000/api
+        run: npm run build
+
+      - name: Avvia il frontend
+        working-directory: frontend
+        run: |
+          npm run preview -- --port=5173 &
+          timeout 30 bash -c 'until curl -sf http://localhost:5173 >/dev/null; do sleep 1; done'
+
+      - name: Esegui i test E2E
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+          PLAYWRIGHT_API_URL: http://localhost:8000/api
+        run: npx playwright test
+
+      - name: Carica il report Playwright (solo se fallisce)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
