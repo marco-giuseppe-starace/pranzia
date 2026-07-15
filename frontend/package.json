@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pretest:e2e": "cd ../backend && php artisan e2e:seed-table demo-qr-e2e",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "pinia": "^4.0.2",
@@ -15,6 +17,7 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/test-utils": "^2.4.11",
     "jsdom": "^29.1.1",

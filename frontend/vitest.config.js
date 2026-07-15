@@ -7,5 +7,8 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'jsdom',
+    // La cartella e2e/ contiene i test Playwright (npm run test:e2e), non
+    // vanno raccolti da Vitest.
+    exclude: ['e2e/**', 'node_modules/**'],
   },
 })
