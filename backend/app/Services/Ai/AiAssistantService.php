@@ -29,7 +29,14 @@ class AiAssistantService
         $task = 'Suggerisci 1-2 piatti in abbinamento o upselling, basati sul contesto del cliente'
             .($context ? " (\"{$context}\")" : '').'.';
 
-        return $this->call($session, AiInteractionType::Recommendation, $model, $task, $context ?? '');
+        // L'API Claude rifiuta un messaggio utente vuoto: quando il cliente
+        // non fornisce contesto (es. bottone "Consigliami qualcosa" senza
+        // testo aggiuntivo), inviamo comunque un prompt non vuoto.
+        $userMessage = $context !== null && $context !== ''
+            ? $context
+            : 'Consigliami un piatto o un abbinamento dal menu.';
+
+        return $this->call($session, AiInteractionType::Recommendation, $model, $task, $userMessage);
     }
 
     public function ask(TableSession $session, string $question, ?string $language = null): string

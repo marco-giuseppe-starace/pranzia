@@ -38,6 +38,18 @@ it('returns a recommendation and logs the interaction using the sonnet model', f
         ->and($interaction->tokens_output)->toBe(50);
 });
 
+it('never sends an empty message to Claude when no context is provided', function () {
+    // L'API Claude rifiuta un messaggio utente vuoto (400 "user messages
+    // must have non-empty content"): il bottone "Consigliami qualcosa" del
+    // frontend non invia alcun context, quindi questo caso va coperto.
+    $session = TableSession::factory()->create();
+    MenuItem::factory()->create();
+
+    $this->postJson('/api/ai/recommend', ['session_id' => $session->id])->assertOk();
+
+    expect($this->fakeClient->calls[0]['userMessage'])->not->toBe('');
+});
+
 it('answers a free question using the haiku model', function () {
     $session = TableSession::factory()->create();
 
