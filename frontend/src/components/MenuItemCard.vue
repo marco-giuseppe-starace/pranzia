@@ -1,4 +1,5 @@
 <script setup>
+import { computed, ref } from 'vue'
 import { useCartStore } from '../stores/cart.js'
 import { useI18n } from '../i18n/index.js'
 
@@ -8,6 +9,34 @@ const props = defineProps({
 
 const cart = useCartStore()
 const { t } = useI18n()
+
+// Quantita' gia' presente nel carrello per questo piatto: pilota se
+// mostrare il pulsante "Aggiungi" o lo stepper +/-, cosi' il cliente vede
+// subito, direttamente sulla card, cosa e quanto ha gia' scelto.
+const quantityInCart = computed(() => {
+  const line = cart.items.find((line) => line.menuItemId === props.item.id)
+  return line?.quantity ?? 0
+})
+
+// Messaggio di conferma "Aggiunto al carrello", mostrato per un istante
+// dopo il click cosi' l'azione non resta silenziosa.
+const justAdded = ref(false)
+
+function handleAdd() {
+  cart.add(props.item)
+  justAdded.value = true
+  setTimeout(() => {
+    justAdded.value = false
+  }, 1400)
+}
+
+function increment() {
+  cart.add(props.item)
+}
+
+function decrement() {
+  cart.updateQuantity(props.item.id, quantityInCart.value - 1)
+}
 </script>
 
 <template>
@@ -22,9 +51,20 @@ const { t } = useI18n()
 
     <div class="action">
       <span class="price">{{ Number(item.price).toFixed(2) }} &euro;</span>
-      <button v-if="item.available" type="button" @click="cart.add(item)">
-        {{ t('menu.add') }}
-      </button>
+
+      <template v-if="item.available">
+        <button v-if="!quantityInCart" type="button" class="add" @click="handleAdd">
+          {{ t('menu.add') }}
+        </button>
+
+        <div v-else class="stepper">
+          <button type="button" class="step" @click="decrement" :aria-label="t('menu.decrease')">&minus;</button>
+          <span class="qty">{{ quantityInCart }}</span>
+          <button type="button" class="step" @click="increment" :aria-label="t('menu.increase')">+</button>
+        </div>
+
+        <span v-if="justAdded" class="added-hint">{{ t('menu.added') }}</span>
+      </template>
       <span v-else class="unavailable-label">{{ t('menu.unavailable') }}</span>
     </div>
   </article>
@@ -84,7 +124,7 @@ h3 {
   font-weight: 600;
 }
 
-button {
+.add {
   background: #ef9f27;
   color: #412402;
   border: none;
@@ -92,6 +132,70 @@ button {
   padding: 0.35rem 0.75rem;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.add:hover {
+  background: #e08f16;
+}
+
+.add:active {
+  transform: scale(0.94);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: none;
+  background: #ef9f27;
+  color: #412402;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.step:active {
+  transform: scale(0.9);
+}
+
+.qty {
+  min-width: 1.25rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.added-hint {
+  font-size: 0.75rem;
+  color: #2e7d32;
+  font-weight: 600;
+  animation: fade-in-out 1.4s ease;
+}
+
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.15rem);
+  }
+  15%,
+  70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .unavailable-label {

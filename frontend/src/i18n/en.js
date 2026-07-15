@@ -11,6 +11,9 @@ export default {
   menu: {
     title: 'Menu',
     add: 'Add',
+    added: 'Added to cart',
+    increase: 'Add one more',
+    decrease: 'Remove one',
     unavailable: 'Unavailable',
     filterAllergens: 'Filter by allergens',
   },
