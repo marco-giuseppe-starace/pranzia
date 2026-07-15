@@ -35,6 +35,7 @@ cd frontend && npm install && cp .env.example .env && npm run dev
 ```
 
 ## Stato del progetto
-Milestone 1 (setup & infrastruttura) completata. Le milestone successive sono
-tracciate come issue GitHub, organizzate nel
+Milestone 1-5 completate (setup, database, backend core, integrazione IA,
+frontend cliente). Le milestone successive sono tracciate come issue GitHub,
+organizzate nel
 [project board Pranzia](https://github.com/users/marco-giuseppe-starace/projects/5).

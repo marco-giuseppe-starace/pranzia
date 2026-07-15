@@ -14,7 +14,10 @@ Cliente → QR code → PWA Vue → API Laravel → MySQL (menu, ordini)
 
 ## Stack tecnologico
 - **Backend**: Laravel 13 (API REST) — vedi `backend/`
-- **Frontend**: Vue 3 + Vite, PWA installabile senza app store — vedi `frontend/`
+- **Frontend**: Vue 3 + Vite, PWA installabile senza app store — vedi
+  `frontend/`. Router `vue-router`, stato `pinia` (sessione + carrello,
+  persistiti in `localStorage`), i18n statico minimale per it/en, client
+  HTTP fetch-based (nessun axios)
 - **Database**: MySQL 8
 - **IA**: Claude API (Haiku per traduzione/filtri, Sonnet per consigli se serve
   più qualità)

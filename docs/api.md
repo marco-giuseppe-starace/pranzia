@@ -30,18 +30,23 @@ Dettagli `POST /api/orders`:
 
 ```
 POST /api/ai/recommend    → { session_id, context? } → { text } (Sonnet)
-POST /api/ai/ask          → { session_id, question } → { text } (Haiku)
+POST /api/ai/ask          → { session_id, question, language? } → { text } (Haiku)
 ```
 
 - `recommend`: consigli/upselling basati solo sul menu reale disponibile
 - `ask`: traduzione e domande libere sui piatti, con disclaimer allergeni
-  automatico quando pertinente (vedi `docs/ia-guardrail.md`)
+  automatico quando pertinente (vedi `docs/ia-guardrail.md`). `language`
+  (opzionale, es. "en") sovrascrive la lingua di sessione solo per quella
+  chiamata — il frontend invia la lingua correntemente selezionata
+  nell'interfaccia
 - Rifiutano con `422` se la sessione non è attiva
+- Rifiutano con `502` (messaggio generico, mai il dettaglio dell'eccezione)
+  se la chiamata a Claude fallisce (es. chiave API mancante/non valida) — la
+  chiamata fallita viene comunque loggata in `ai_interactions` con costo 0
 - Rate limit: **10 richieste/minuto per sessione tavolo** (non per IP) — oltre
   restituisce `429`
 - Richiedono `ANTHROPIC_API_KEY` valida in `backend/.env` per funzionare
-  davvero; senza chiave l'SDK fallisce e la chiamata viene comunque loggata
-  in `ai_interactions` con costo 0
+  davvero
 
 ## Autenticazione area admin
 
@@ -71,7 +76,7 @@ GET      /api/admin/ai-costs              → report spesa IA, raggruppato per m
 ```
 
 ## Stato
-Milestone 4 (integrazione IA) completata: tutti gli endpoint sopra sono
-implementati e coperti da test Pest (`tests/Feature/Api/`), con client Claude
-finto nei test (nessuna chiamata reale). Prossimo passo: Milestone 5,
-frontend cliente (PWA: landing QR, menu, chat IA, carrello, lingua).
+Milestone 5 (frontend cliente) completata: tutti gli endpoint sopra sono
+implementati, coperti da test Pest (`tests/Feature/Api/`, client Claude finto
+nei test) e consumati dalla PWA Vue in `frontend/`. Prossimo passo: Milestone
+6, pannello ristoratore (dashboard cucina, gestione menu, report costi IA).
