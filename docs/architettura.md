@@ -17,7 +17,8 @@ Cliente → QR code → PWA Vue → API Laravel → MySQL (menu, ordini)
 - **Frontend**: Vue 3 + Vite, PWA installabile senza app store — vedi
   `frontend/`. Router `vue-router`, stato `pinia` (sessione + carrello,
   persistiti in `localStorage`), i18n statico minimale per it/en, client
-  HTTP fetch-based (nessun axios)
+  HTTP fetch-based (nessun axios). Sezione `/admin/*` (staff) con auth
+  Sanctum a token, layout separato (`AdminLayout.vue`) dal layout cliente
 - **Database**: MySQL 8
 - **IA**: Claude API (Haiku per traduzione/filtri, Sonnet per consigli se serve
   più qualità)

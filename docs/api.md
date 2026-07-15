@@ -67,16 +67,24 @@ GET|POST /api/admin/menu-items
 PUT      /api/admin/menu-items/{menu_item}
 DELETE   /api/admin/menu-items/{menu_item}
 
+GET|POST /api/admin/menu-categories
+PUT      /api/admin/menu-categories/{menu_category}
+DELETE   /api/admin/menu-categories/{menu_category}   → 409 se la categoria contiene ancora piatti
+
 GET|POST /api/admin/allergens
 PUT      /api/admin/allergens/{allergen}
 DELETE   /api/admin/allergens/{allergen}
 
 GET      /api/admin/orders                → dashboard cucina, ?status= opzionale
+PATCH    /api/admin/orders/{order}/status → { status } → avanza in attesa/in preparazione/servito
 GET      /api/admin/ai-costs              → report spesa IA, raggruppato per mese e tipo
 ```
 
+`GET /api/admin/menu-items` include `category_id` per ogni piatto (necessario
+al pannello admin per raggruppare/filtrare per categoria).
+
 ## Stato
-Milestone 5 (frontend cliente) completata: tutti gli endpoint sopra sono
-implementati, coperti da test Pest (`tests/Feature/Api/`, client Claude finto
-nei test) e consumati dalla PWA Vue in `frontend/`. Prossimo passo: Milestone
-6, pannello ristoratore (dashboard cucina, gestione menu, report costi IA).
+Milestone 6 (pannello ristoratore) completata: tutti gli endpoint sopra sono
+implementati, coperti da test Pest (`tests/Feature/Api/Admin/`) e consumati
+dalla sezione `/admin/*` della PWA Vue in `frontend/`. Prossimo passo:
+Milestone 7, testing e deploy.
