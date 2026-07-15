@@ -59,6 +59,9 @@ async function recommend() {
 
     <div class="messages">
       <ChatMessage v-for="(message, index) in messages" :key="index" v-bind="message" />
+      <div v-if="sending" class="typing" aria-live="polite">
+        <span></span><span></span><span></span>
+      </div>
     </div>
 
     <form class="composer" @submit.prevent="send">
@@ -98,6 +101,45 @@ h1 {
   display: flex;
   flex-direction: column;
   min-height: 12rem;
+}
+
+/* Indicatore "sta scrivendo...": tre puntini che pulsano in sequenza,
+   mostrato mentre si attende la risposta dell'IA. */
+.typing {
+  align-self: flex-start;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.6rem 0.9rem;
+  margin: 0.35rem 0;
+  background: #f4f1ea;
+  border-radius: 0.75rem;
+}
+
+.typing span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #9c8f78;
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-0.25rem);
+    opacity: 1;
+  }
 }
 
 .composer {
