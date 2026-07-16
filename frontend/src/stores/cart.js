@@ -19,17 +19,20 @@ export const useCartStore = defineStore('cart', {
     total: (state) => state.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
   },
   actions: {
-    add(menuItem) {
+    add(menuItem, notes = '') {
       const existing = this.items.find((item) => item.menuItemId === menuItem.id)
       if (existing) {
         existing.quantity += 1
+        // Una nota specificata esplicitamente (es. dal pop-up "Chiedi
+        // all'IA") sovrascrive quella precedente per questa riga.
+        if (notes) existing.notes = notes
       } else {
         this.items.push({
           menuItemId: menuItem.id,
           name: menuItem.name,
           price: Number(menuItem.price),
           quantity: 1,
-          notes: '',
+          notes,
         })
       }
       this.persist()

@@ -31,7 +31,7 @@ describe('MenuItemCard', () => {
     const wrapper = mount(MenuItemCard, { props: { item: availableItem } })
     const cart = useCartStore()
 
-    await wrapper.find('button').trigger('click')
+    await wrapper.get('button.add').trigger('click')
 
     expect(cart.items).toHaveLength(1)
     expect(cart.items[0].menuItemId).toBe(1)
@@ -42,7 +42,15 @@ describe('MenuItemCard', () => {
       props: { item: { ...availableItem, available: false } },
     })
 
-    expect(wrapper.find('button').exists()).toBe(false)
+    expect(wrapper.find('button.add').exists()).toBe(false)
     expect(wrapper.text()).toContain('Non disponibile')
+  })
+
+  it('opens the dish assistant pop-up when asking the ai', async () => {
+    const wrapper = mount(MenuItemCard, { props: { item: availableItem } })
+
+    await wrapper.get('button.ask-ai').trigger('click')
+
+    expect(wrapper.findComponent({ name: 'DishAssistant' }).exists()).toBe(true)
   })
 })

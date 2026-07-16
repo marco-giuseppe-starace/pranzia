@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useCartStore } from '../stores/cart.js'
 import { useI18n } from '../i18n/index.js'
+import DishAssistant from './DishAssistant.vue'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -9,6 +10,8 @@ const props = defineProps({
 
 const cart = useCartStore()
 const { t } = useI18n()
+
+const showAssistant = ref(false)
 
 // Quantita' gia' presente nel carrello per questo piatto: pilota se
 // mostrare il pulsante "Aggiungi" o lo stepper +/-, cosi' il cliente vede
@@ -41,6 +44,11 @@ function decrement() {
 
 <template>
   <article class="menu-item" :class="{ unavailable: !item.available }">
+    <div class="thumb">
+      <img v-if="item.image_url" :src="item.image_url" :alt="item.name" />
+      <span v-else class="thumb-placeholder" aria-hidden="true">{{ item.name.charAt(0) }}</span>
+    </div>
+
     <div class="info">
       <h3>{{ item.name }}</h3>
       <p v-if="item.description" class="description">{{ item.description }}</p>
@@ -48,6 +56,15 @@ function decrement() {
         <li v-for="allergen in item.allergens" :key="allergen.id">{{ allergen.name }}</li>
       </ul>
     </div>
+
+    <button type="button" class="ask-ai" @click="showAssistant = true">
+      <span class="ask-ai-icon" aria-hidden="true">?</span>
+      {{ t('dishAssistant.openButton') }}
+    </button>
+
+    <Teleport to="body">
+      <DishAssistant v-if="showAssistant" :item="item" @close="showAssistant = false" />
+    </Teleport>
 
     <div class="action">
       <span class="price">{{ Number(item.price).toFixed(2) }} &euro;</span>
@@ -62,37 +79,81 @@ function decrement() {
           <span class="qty">{{ quantityInCart }}</span>
           <button type="button" class="step" @click="increment" :aria-label="t('menu.increase')">+</button>
         </div>
-
-        <span v-if="justAdded" class="added-hint">{{ t('menu.added') }}</span>
       </template>
       <span v-else class="unavailable-label">{{ t('menu.unavailable') }}</span>
     </div>
+
+    <span v-if="justAdded" class="added-hint">{{ t('menu.added') }}</span>
   </article>
 </template>
 
 <style scoped>
 .menu-item {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 11.5rem;
+  scroll-snap-align: start;
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(65, 36, 2, 0.06);
   font-family: 'Inter', system-ui, sans-serif;
+  position: relative;
 }
 
 .menu-item.unavailable {
   opacity: 0.5;
 }
 
+.thumb {
+  width: 100%;
+  height: 6.5rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fdf1de, #f6d9a8);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #d85a30;
+}
+
+.info {
+  padding: 0.6rem 0.7rem 0;
+  flex: 1;
+}
+
 h3 {
   margin: 0 0 0.25rem;
   color: #1a1a1a;
+  font-size: 0.95rem;
+  line-height: 1.25;
 }
 
 .description {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.4rem;
   color: #555;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .allergens {
@@ -101,7 +162,7 @@ h3 {
   flex-wrap: wrap;
   gap: 0.25rem;
   padding: 0;
-  margin: 0;
+  margin: 0 0 0.4rem;
 }
 
 .allergens li {
@@ -112,16 +173,58 @@ h3 {
   padding: 0.1rem 0.5rem;
 }
 
-.action {
+.ask-ai {
+  align-self: flex-start;
+  margin: 0.1rem 0.7rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fdf1de;
+  border: 1px solid #f0dcb8;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem 0.2rem 0.35rem;
+  color: #d85a30;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.ask-ai:hover {
+  background: #fbe6c4;
+}
+
+.ask-ai:active {
+  transform: scale(0.96);
+}
+
+.ask-ai-icon {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: #d85a30;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
   flex-shrink: 0;
+}
+
+.action {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.7rem 0.7rem;
 }
 
 .price {
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .add {
@@ -177,9 +280,15 @@ h3 {
 }
 
 .added-hint {
-  font-size: 0.75rem;
-  color: #2e7d32;
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  background: #2e7d32;
+  color: white;
+  font-size: 0.65rem;
   font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
   animation: fade-in-out 1.4s ease;
 }
 
