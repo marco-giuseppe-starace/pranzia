@@ -21,6 +21,7 @@ function toggle(id) {
 <template>
   <details class="allergen-filter" v-if="allergens.length">
     <summary>{{ t('menu.filterAllergens') }}</summary>
+    <p class="hint">{{ t('menu.filterAllergensHint') }}</p>
     <label v-for="allergen in allergens" :key="allergen.id">
       <input
         type="checkbox"
@@ -41,5 +42,11 @@ function toggle(id) {
 .allergen-filter label {
   display: block;
   padding: 0.25rem 0;
+}
+
+.hint {
+  margin: 0.4rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: #777;
 }
 </style>

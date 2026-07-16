@@ -16,6 +16,7 @@ export default {
     decrease: 'Remove one',
     unavailable: 'Unavailable',
     filterAllergens: 'Filter by allergens',
+    filterAllergensHint: 'Select one or more allergens to hide dishes containing them from the menu.',
   },
   chat: {
     title: 'Pranzia Assistant',
@@ -25,6 +26,7 @@ export default {
   },
   cart: {
     title: 'Your order',
+    table: 'Table',
     empty: 'Your cart is empty.',
     total: 'Total',
     submit: 'Send order',

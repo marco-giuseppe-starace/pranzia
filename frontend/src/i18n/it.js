@@ -16,6 +16,7 @@ export default {
     decrease: 'Rimuovi uno',
     unavailable: 'Non disponibile',
     filterAllergens: 'Filtra per allergeni',
+    filterAllergensHint: 'Seleziona uno o più allergeni per nascondere dal menu i piatti che li contengono.',
   },
   chat: {
     title: 'Assistente Pranzia',
@@ -25,6 +26,7 @@ export default {
   },
   cart: {
     title: 'Il tuo ordine',
+    table: 'Tavolo',
     empty: 'Il carrello e\' vuoto.',
     total: 'Totale',
     submit: 'Invia ordine',
