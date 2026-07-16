@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MenuCategoryGroup;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,6 +15,7 @@ class MenuCategoryFactory extends Factory
         return [
             'name' => fake()->unique()->word(),
             'sort_order' => fake()->numberBetween(0, 10),
+            'group' => MenuCategoryGroup::Food,
         ];
     }
 }

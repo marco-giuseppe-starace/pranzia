@@ -13,6 +13,7 @@ class MenuCategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'sort_order' => $this->sort_order,
+            'group' => $this->group,
             'menu_items' => MenuItemResource::collection($this->whenLoaded('menuItems')),
         ];
     }

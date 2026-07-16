@@ -24,9 +24,10 @@ it('lists categories ordered by sort_order', function () {
 it('creates a category', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->postJson('/api/admin/menu-categories', ['name' => 'Antipasti', 'sort_order' => 0])
+    $this->postJson('/api/admin/menu-categories', ['name' => 'Antipasti', 'sort_order' => 0, 'group' => 'food'])
         ->assertCreated()
-        ->assertJsonPath('data.name', 'Antipasti');
+        ->assertJsonPath('data.name', 'Antipasti')
+        ->assertJsonPath('data.group', 'food');
 });
 
 it('validates required fields when creating a category', function () {
@@ -34,7 +35,15 @@ it('validates required fields when creating a category', function () {
 
     $this->postJson('/api/admin/menu-categories', [])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors('name');
+        ->assertJsonValidationErrors(['name', 'group']);
+});
+
+it('rejects an invalid group value', function () {
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->postJson('/api/admin/menu-categories', ['name' => 'Antipasti', 'group' => 'not-a-group'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('group');
 });
 
 it('updates a category', function () {

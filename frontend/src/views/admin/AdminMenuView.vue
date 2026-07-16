@@ -15,7 +15,12 @@ const allergens = ref([])
 const error = ref(null)
 
 const newCategoryName = ref('')
+const newCategoryGroup = ref('food')
 const newItem = ref({ name: '', price: '', category_id: '' })
+
+// Le 3 macro-sezioni verticali in cui il cliente vede il menu (vedi
+// MenuView.vue): ogni categoria va assegnata a una di queste.
+const GROUP_LABELS = { food: 'Cibo', drink: 'Bevande', dessert: 'Dolci' }
 
 async function loadAll() {
   const [categoriesRes, itemsRes, allergensRes] = await Promise.all([
@@ -39,8 +44,13 @@ async function withErrorHandling(action) {
 
 async function addCategory() {
   await withErrorHandling(async () => {
-    await api.post('/admin/menu-categories', { name: newCategoryName.value, sort_order: categories.value.length }, opts)
+    await api.post('/admin/menu-categories', {
+      name: newCategoryName.value,
+      sort_order: categories.value.length,
+      group: newCategoryGroup.value,
+    }, opts)
     newCategoryName.value = ''
+    newCategoryGroup.value = 'food'
     await loadAll()
   })
 }
@@ -96,7 +106,7 @@ onMounted(loadAll)
     <section>
       <h2>Categorie</h2>
       <table>
-        <thead><tr><th>Nome</th><th>Ordine</th><th></th></tr></thead>
+        <thead><tr><th>Nome</th><th>Ordine</th><th>Sezione</th><th></th></tr></thead>
         <tbody>
           <CategoryRow
             v-for="category in categories"
@@ -109,6 +119,9 @@ onMounted(loadAll)
       </table>
       <form class="inline-form" @submit.prevent="addCategory">
         <input v-model="newCategoryName" type="text" placeholder="Nuova categoria" required />
+        <select v-model="newCategoryGroup" required>
+          <option v-for="(label, value) in GROUP_LABELS" :key="value" :value="value">{{ label }}</option>
+        </select>
         <button type="submit">Aggiungi categoria</button>
       </form>
     </section>

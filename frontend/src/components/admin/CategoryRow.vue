@@ -7,13 +7,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update', 'delete'])
 
+const GROUP_LABELS = { food: 'Cibo', drink: 'Bevande', dessert: 'Dolci' }
+
 const editing = ref(false)
 const name = ref(props.category.name)
 const sortOrder = ref(props.category.sort_order)
+const group = ref(props.category.group)
 
 function save() {
-  emit('update', props.category.id, { name: name.value, sort_order: Number(sortOrder.value) })
+  emit('update', props.category.id, { name: name.value, sort_order: Number(sortOrder.value), group: group.value })
   editing.value = false
+}
+
+function remove() {
+  if (!window.confirm(`Eliminare la categoria "${props.category.name}"?`)) return
+  emit('delete', props.category.id)
 }
 </script>
 
@@ -23,6 +31,11 @@ function save() {
       <td><input v-model="name" type="text" /></td>
       <td><input v-model="sortOrder" type="number" min="0" style="width: 4rem" /></td>
       <td>
+        <select v-model="group">
+          <option v-for="(label, value) in GROUP_LABELS" :key="value" :value="value">{{ label }}</option>
+        </select>
+      </td>
+      <td>
         <button type="button" class="primary" @click="save">Salva</button>
         <button type="button" class="secondary" @click="editing = false">Annulla</button>
       </td>
@@ -30,9 +43,10 @@ function save() {
     <template v-else>
       <td>{{ category.name }}</td>
       <td>{{ category.sort_order }}</td>
+      <td>{{ GROUP_LABELS[category.group] ?? category.group }}</td>
       <td>
         <button type="button" class="primary" @click="editing = true">Modifica</button>
-        <button type="button" class="danger" @click="emit('delete', category.id)">Elimina</button>
+        <button type="button" class="danger" @click="remove">Elimina</button>
       </td>
     </template>
   </tr>

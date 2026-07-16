@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\MenuCategoryGroup;
 use App\Models\Allergen;
 use App\Models\MenuCategory;
 use Illuminate\Database\Seeder;
@@ -30,16 +31,54 @@ class MenuSeeder extends Seeder
             ['name' => 'Cotoletta alla milanese', 'description' => 'Impanata e fritta nel burro chiarificato.', 'price' => 16.00, 'allergens' => ['Glutine', 'Uova', 'Latte']],
             ['name' => 'Parmigiana di melanzane', 'description' => 'Melanzane fritte, mozzarella, pomodoro e basilico.', 'price' => 12.00, 'allergens' => ['Latte', 'Uova']],
         ],
-        'Dolci' => [
+        'Bibite' => [
+            ['name' => 'Acqua naturale / frizzante', 'description' => 'Bottiglia 0.75L.', 'price' => 2.00, 'allergens' => []],
+            ['name' => 'Coca-Cola / Aranciata', 'description' => 'Lattina 33cl.', 'price' => 3.00, 'allergens' => []],
+            ['name' => 'Succo di frutta', 'description' => 'Pesca, ananas o pera, 20cl.', 'price' => 3.00, 'allergens' => []],
+        ],
+        'Birre' => [
+            ['name' => 'Birra artigianale alla spina', 'description' => 'Bionda, produzione locale, 40cl.', 'price' => 5.00, 'allergens' => ['Glutine']],
+            ['name' => 'Birra doppio malto in bottiglia', 'description' => 'Ambrata, 33cl.', 'price' => 5.50, 'allergens' => ['Glutine']],
+        ],
+        'Vini' => [
+            ['name' => 'Vino della casa (calice)', 'description' => 'Rosso o bianco, selezione del sommelier.', 'price' => 4.50, 'allergens' => ['Solfiti']],
+            ['name' => 'Prosecco (calice)', 'description' => 'Extra dry, bollicine fini.', 'price' => 5.00, 'allergens' => ['Solfiti']],
+            ['name' => 'Bottiglia di rosso della casa', 'description' => 'Vino rosso del territorio, 0.75L.', 'price' => 18.00, 'allergens' => ['Solfiti']],
+        ],
+        'Dolci al cucchiaio' => [
             ['name' => 'Tiramisu' . "'", 'description' => 'Savoiardi, caffe' . "'" . ', mascarpone e cacao.', 'price' => 6.00, 'allergens' => ['Uova', 'Latte', 'Glutine']],
             ['name' => 'Panna cotta', 'description' => 'Con coulis di frutti di bosco.', 'price' => 5.50, 'allergens' => ['Latte']],
             ['name' => 'Cannolo siciliano', 'description' => 'Ripieno di ricotta fresca e gocce di cioccolato.', 'price' => 5.00, 'allergens' => ['Glutine', 'Latte', 'Frutta a guscio']],
         ],
-        'Bevande' => [
-            ['name' => 'Acqua naturale / frizzante', 'description' => 'Bottiglia 0.75L.', 'price' => 2.00, 'allergens' => []],
-            ['name' => 'Vino della casa (calice)', 'description' => 'Rosso o bianco, selezione del sommelier.', 'price' => 4.50, 'allergens' => ['Solfiti']],
-            ['name' => 'Birra artigianale', 'description' => 'Birra alla spina, produzione locale.', 'price' => 5.00, 'allergens' => ['Glutine']],
+        'Frutta' => [
+            ['name' => 'Macedonia di frutta fresca', 'description' => 'Frutta di stagione tagliata al momento.', 'price' => 5.00, 'allergens' => []],
+            ['name' => 'Ananas grigliato', 'description' => 'Con una pallina di gelato alla vaniglia.', 'price' => 5.50, 'allergens' => ['Latte']],
+            ['name' => 'Frutti di bosco con panna', 'description' => 'Mirtilli, lamponi e more con panna fresca.', 'price' => 6.00, 'allergens' => ['Latte']],
         ],
+        'Crostate' => [
+            ['name' => 'Crostata alla frutta', 'description' => 'Pasta frolla, crema pasticcera e frutta fresca.', 'price' => 5.50, 'allergens' => ['Glutine', 'Uova', 'Latte']],
+            ['name' => 'Crostata di mele', 'description' => 'Pasta frolla e mele caramellate alla cannella.', 'price' => 5.00, 'allergens' => ['Glutine', 'Uova', 'Latte']],
+        ],
+        'Cioccolato' => [
+            ['name' => 'Tortino al cioccolato fondente', 'description' => 'Cuore caldo e morbido, servito con gelato.', 'price' => 6.50, 'allergens' => ['Glutine', 'Uova', 'Latte']],
+            ['name' => 'Mousse al cioccolato', 'description' => 'Cioccolato fondente 70%, montata con panna fresca.', 'price' => 5.50, 'allergens' => ['Uova', 'Latte']],
+            ['name' => 'Semifreddo al cioccolato e nocciole', 'description' => 'Con granella di nocciole tostate.', 'price' => 6.00, 'allergens' => ['Latte', 'Uova', 'Frutta a guscio']],
+        ],
+    ];
+
+    // Macro-sezione verticale (cibo/bevande/dolci) di ogni categoria, usata
+    // dal frontend per raggruppare il menu in 3 blocchi (vedi MenuView.vue).
+    private const CATEGORY_GROUPS = [
+        'Antipasti' => MenuCategoryGroup::Food,
+        'Primi' => MenuCategoryGroup::Food,
+        'Secondi' => MenuCategoryGroup::Food,
+        'Bibite' => MenuCategoryGroup::Drink,
+        'Birre' => MenuCategoryGroup::Drink,
+        'Vini' => MenuCategoryGroup::Drink,
+        'Dolci al cucchiaio' => MenuCategoryGroup::Dessert,
+        'Frutta' => MenuCategoryGroup::Dessert,
+        'Crostate' => MenuCategoryGroup::Dessert,
+        'Cioccolato' => MenuCategoryGroup::Dessert,
     ];
 
     public function run(): void
@@ -50,7 +89,7 @@ class MenuSeeder extends Seeder
         foreach (self::CATEGORIES as $categoryName => $items) {
             $category = MenuCategory::firstOrCreate(
                 ['name' => $categoryName],
-                ['sort_order' => $sortOrder]
+                ['sort_order' => $sortOrder, 'group' => self::CATEGORY_GROUPS[$categoryName]]
             );
 
             foreach ($items as $item) {
