@@ -17,6 +17,7 @@ async function logout() {
       <RouterLink to="/admin/orders" class="brand">PranzIA — Staff</RouterLink>
       <nav>
         <RouterLink to="/admin/orders">Ordini</RouterLink>
+        <RouterLink to="/admin/tables">Tavoli</RouterLink>
         <RouterLink to="/admin/menu">Menu</RouterLink>
         <RouterLink to="/admin/ai-costs">Costi IA</RouterLink>
       </nav>
