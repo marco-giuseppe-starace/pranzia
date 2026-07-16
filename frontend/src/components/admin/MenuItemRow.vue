@@ -46,8 +46,8 @@ function save() {
     <td>{{ item.available ? 'Sì' : 'No' }}</td>
     <td>{{ item.allergens.map((a) => a.name).join(', ') || '—' }}</td>
     <td>
-      <button type="button" @click="editing = true">Modifica</button>
-      <button type="button" @click="emit('delete', item.id)">Elimina</button>
+      <button type="button" class="primary" @click="editing = true">Modifica</button>
+      <button type="button" class="danger" @click="emit('delete', item.id)">Elimina</button>
     </td>
   </tr>
   <tr v-else class="editing">
@@ -78,8 +78,8 @@ function save() {
         </fieldset>
 
         <div>
-          <button type="button" @click="save">Salva</button>
-          <button type="button" @click="editing = false">Annulla</button>
+          <button type="button" class="primary" @click="save">Salva</button>
+          <button type="button" class="secondary" @click="editing = false">Annulla</button>
         </div>
       </div>
     </td>
@@ -113,5 +113,30 @@ fieldset {
   gap: 0.5rem 1rem;
   border: 1px solid #eee;
   border-radius: 0.5rem;
+}
+
+button {
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 0.4rem;
+}
+
+button.primary {
+  background: #ef9f27;
+  color: #412402;
+}
+
+button.secondary {
+  background: #f4f1ea;
+  color: #412402;
+}
+
+button.danger {
+  background: #d85a30;
+  color: #fff;
 }
 </style>
