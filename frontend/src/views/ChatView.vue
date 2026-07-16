@@ -100,7 +100,10 @@ h1 {
 .messages {
   display: flex;
   flex-direction: column;
-  min-height: 12rem;
+}
+
+.messages:empty {
+  display: none;
 }
 
 /* Indicatore "sta scrivendo...": tre puntini che pulsano in sequenza,

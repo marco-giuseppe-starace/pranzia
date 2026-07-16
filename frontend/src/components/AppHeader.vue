@@ -30,8 +30,9 @@ const { t } = useI18n()
 <style scoped>
 .app-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #eee;
   font-family: 'Inter', system-ui, sans-serif;
@@ -50,12 +51,30 @@ const { t } = useI18n()
 
 nav {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
 nav a {
   color: #412402;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    gap: 0.4rem 0.6rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  nav {
+    gap: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
 }
 
 nav a.router-link-active {
