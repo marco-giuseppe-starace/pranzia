@@ -19,7 +19,7 @@ class OrderController extends Controller
     {
         $orders = Order::query()
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
-            ->with('items.menuItem')
+            ->with('items.menuItem', 'session.table')
             ->latest()
             ->get();
 
@@ -31,6 +31,6 @@ class OrderController extends Controller
     {
         $order->update(['status' => $request->enum('status', OrderStatus::class)]);
 
-        return OrderResource::make($order->load('items.menuItem'))->response();
+        return OrderResource::make($order->load('items.menuItem', 'session.table'))->response();
     }
 }

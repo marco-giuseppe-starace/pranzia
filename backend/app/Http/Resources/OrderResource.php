@@ -12,6 +12,7 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'session_id' => $this->session_id,
+            'table_number' => $this->whenLoaded('session', fn () => $this->session->table->number),
             'status' => $this->status,
             'total' => $this->total,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),

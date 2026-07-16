@@ -64,7 +64,7 @@ class OrderController extends Controller
             return $order;
         });
 
-        return OrderResource::make($order->load('items.menuItem'))
+        return OrderResource::make($order->load('items.menuItem', 'session.table'))
             ->response()
             ->setStatusCode(201);
     }
@@ -72,7 +72,7 @@ class OrderController extends Controller
     public function show(int $sessionId): AnonymousResourceCollection
     {
         $orders = Order::where('session_id', $sessionId)
-            ->with('items.menuItem')
+            ->with('items.menuItem', 'session.table')
             ->latest()
             ->get();
 

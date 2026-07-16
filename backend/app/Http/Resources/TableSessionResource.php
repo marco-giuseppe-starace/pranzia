@@ -12,6 +12,7 @@ class TableSessionResource extends JsonResource
         return [
             'id' => $this->id,
             'table_id' => $this->table_id,
+            'table_number' => $this->table->number,
             'language' => $this->language,
             'status' => $this->status,
             'started_at' => $this->started_at,

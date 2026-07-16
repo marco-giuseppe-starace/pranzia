@@ -17,7 +17,7 @@ function nextStatus() {
 <template>
   <article class="order-card" :class="order.status">
     <header>
-      <span>#{{ order.id }} — Tavolo sessione {{ order.session_id }}</span>
+      <span>#{{ order.id }} — Tavolo {{ order.table_number }}</span>
       <span class="status">{{ STATUS_LABELS[order.status] ?? order.status }}</span>
     </header>
 

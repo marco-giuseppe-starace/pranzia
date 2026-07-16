@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\OrderStatus;
+use App\Models\DiningTable;
 use App\Models\Order;
+use App\Models\TableSession;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 
@@ -16,6 +18,17 @@ it('lists all orders for the kitchen dashboard', function () {
     $this->getJson('/api/admin/orders')
         ->assertOk()
         ->assertJsonCount(2, 'data');
+});
+
+it('includes the table number so kitchen staff know where the order goes', function () {
+    Sanctum::actingAs(User::factory()->create());
+    $table = DiningTable::factory()->create(['number' => 5]);
+    $session = TableSession::factory()->create(['table_id' => $table->id]);
+    Order::factory()->create(['session_id' => $session->id]);
+
+    $this->getJson('/api/admin/orders')
+        ->assertOk()
+        ->assertJsonPath('data.0.table_number', 5);
 });
 
 it('filters orders by status', function () {

@@ -57,6 +57,7 @@ onUnmounted(() => {
 <template>
   <main class="cart">
     <h1>{{ t('cart.title') }}</h1>
+    <p v-if="session.tableNumber" class="table-number">{{ t('cart.table') }} {{ session.tableNumber }}</p>
 
     <p v-if="!cart.items.length && !orders.length">{{ t('cart.empty') }}</p>
 
@@ -121,6 +122,12 @@ onUnmounted(() => {
 h1 {
   font-family: 'Baloo 2', sans-serif;
   color: #412402;
+  margin-bottom: 0.25rem;
+}
+
+.table-number {
+  color: #d85a30;
+  font-weight: 600;
   margin-bottom: 1rem;
 }
 

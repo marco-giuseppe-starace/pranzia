@@ -14,13 +14,15 @@ export const useSessionStore = defineStore('session', {
   state: () => ({
     sessionId: null,
     tableId: null,
+    tableNumber: null,
     language: 'it',
     ...loadPersisted(),
   }),
   actions: {
-    setSession({ id, table_id: tableId }) {
+    setSession({ id, table_id: tableId, table_number: tableNumber }) {
       this.sessionId = id
       this.tableId = tableId
+      this.tableNumber = tableNumber
       this.persist()
     },
     setLanguage(language) {
@@ -30,7 +32,12 @@ export const useSessionStore = defineStore('session', {
     persist() {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ sessionId: this.sessionId, tableId: this.tableId, language: this.language })
+        JSON.stringify({
+          sessionId: this.sessionId,
+          tableId: this.tableId,
+          tableNumber: this.tableNumber,
+          language: this.language,
+        })
       )
     },
   },

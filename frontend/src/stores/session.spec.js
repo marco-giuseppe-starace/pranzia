@@ -24,6 +24,14 @@ describe('session store', () => {
     expect(session.tableId).toBe(7)
   })
 
+  it('stores the table number so it can be shown in the cart', () => {
+    const session = useSessionStore()
+
+    session.setSession({ id: 42, table_id: 7, table_number: 3 })
+
+    expect(session.tableNumber).toBe(3)
+  })
+
   it('persists the language choice across store instances', () => {
     const session = useSessionStore()
     session.setLanguage('en')

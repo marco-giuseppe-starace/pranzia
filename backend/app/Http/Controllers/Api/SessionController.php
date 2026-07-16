@@ -36,6 +36,10 @@ class SessionController extends Controller
             ]);
         }
 
+        // Evita una query extra per il numero del tavolo nella resource:
+        // $table e' gia' in memoria, la relazione non va ricaricata dal DB.
+        $session->setRelation('table', $table);
+
         return TableSessionResource::make($session)->response();
     }
 }

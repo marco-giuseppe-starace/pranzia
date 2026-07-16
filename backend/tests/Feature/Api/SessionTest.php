@@ -4,12 +4,13 @@ use App\Enums\TableSessionStatus;
 use App\Models\DiningTable;
 
 it('creates a new session for a valid qr_token', function () {
-    $table = DiningTable::factory()->create(['qr_token' => 'qr-tavolo-1']);
+    $table = DiningTable::factory()->create(['qr_token' => 'qr-tavolo-1', 'number' => 7]);
 
     $response = $this->postJson('/api/session', ['qr_token' => 'qr-tavolo-1']);
 
     $response->assertCreated()
         ->assertJsonPath('data.table_id', $table->id)
+        ->assertJsonPath('data.table_number', 7)
         ->assertJsonPath('data.status', TableSessionStatus::Active->value);
 
     expect($table->sessions()->count())->toBe(1);

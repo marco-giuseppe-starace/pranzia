@@ -5,6 +5,7 @@ import OrderCard from './OrderCard.vue'
 const pendingOrder = {
   id: 1,
   session_id: 5,
+  table_number: 5,
   status: 'pending',
   total: '13.00',
   items: [{ id: 1, menu_item_name: 'Bruschetta', quantity: 2, notes: null }],
