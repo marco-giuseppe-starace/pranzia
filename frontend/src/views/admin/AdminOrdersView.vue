@@ -8,6 +8,10 @@ import OrderCard from '../../components/admin/OrderCard.vue'
 const adminAuth = useAdminAuthStore()
 const orders = ref([])
 const statusFilter = ref('')
+// Id degli ordini con un cambio di stato in corso: disabilita il relativo
+// pulsante finche' la richiesta non e' completata, cosi' un doppio click
+// non fa avanzare lo stato due volte mentre si attende la risposta.
+const advancingIds = ref([])
 let pollTimer = null
 // Guardia anti-race: il polling ogni 5s e un refresh manuale (dopo
 // "avanza stato") possono avere richieste in volo contemporaneamente; senza
@@ -26,8 +30,15 @@ async function loadOrders() {
 }
 
 async function advance(orderId, status) {
-  await api.patch(`/admin/orders/${orderId}/status`, { status }, { token: adminAuth.token })
-  await loadOrders()
+  if (advancingIds.value.includes(orderId)) return
+  advancingIds.value.push(orderId)
+
+  try {
+    await api.patch(`/admin/orders/${orderId}/status`, { status }, { token: adminAuth.token })
+    await loadOrders()
+  } finally {
+    advancingIds.value = advancingIds.value.filter((id) => id !== orderId)
+  }
 }
 
 onMounted(() => {
@@ -52,7 +63,13 @@ onUnmounted(() => clearInterval(pollTimer))
     </select>
 
     <p v-if="!orders.length">Nessun ordine.</p>
-    <OrderCard v-for="order in orders" :key="order.id" :order="order" @advance="advance" />
+    <OrderCard
+      v-for="order in orders"
+      :key="order.id"
+      :order="order"
+      :advancing="advancingIds.includes(order.id)"
+      @advance="advance"
+    />
   </AdminLayout>
 </template>
 

@@ -1,6 +1,7 @@
 <script setup>
 const props = defineProps({
   order: { type: Object, required: true },
+  advancing: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['advance'])
@@ -29,8 +30,13 @@ function nextStatus() {
 
     <footer>
       <span class="total">{{ Number(order.total).toFixed(2) }} &euro;</span>
-      <button v-if="nextStatus()" type="button" @click="emit('advance', order.id, nextStatus())">
-        Segna come "{{ STATUS_LABELS[nextStatus()] }}"
+      <button
+        v-if="nextStatus()"
+        type="button"
+        :disabled="advancing"
+        @click="emit('advance', order.id, nextStatus())"
+      >
+        {{ advancing ? 'Aggiornamento...' : `Segna come "${STATUS_LABELS[nextStatus()]}"` }}
       </button>
     </footer>
   </article>
@@ -98,5 +104,11 @@ button {
   padding: 0.35rem 0.75rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+button:disabled {
+  background: #f4e2c2;
+  color: #8a7654;
+  cursor: default;
 }
 </style>
