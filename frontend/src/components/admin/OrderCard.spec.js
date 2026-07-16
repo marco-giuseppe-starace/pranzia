@@ -22,16 +22,33 @@ describe('OrderCard', () => {
   it('emits advance with the next status when clicked', async () => {
     const wrapper = mount(OrderCard, { props: { order: pendingOrder } })
 
-    await wrapper.find('button').trigger('click')
+    await wrapper.get('button:not(.back)').trigger('click')
 
     expect(wrapper.emitted('advance')).toEqual([[1, 'preparing']])
   })
 
-  it('shows no advance button for a served order', () => {
+  it('shows no forward button for a served order, only a way back', () => {
     const wrapper = mount(OrderCard, {
       props: { order: { ...pendingOrder, status: 'served' } },
     })
 
-    expect(wrapper.find('button').exists()).toBe(false)
+    expect(wrapper.find('button:not(.back)').exists()).toBe(false)
+    expect(wrapper.find('button.back').exists()).toBe(true)
+  })
+
+  it('emits advance with the previous status when going back', async () => {
+    const wrapper = mount(OrderCard, {
+      props: { order: { ...pendingOrder, status: 'preparing' } },
+    })
+
+    await wrapper.get('button.back').trigger('click')
+
+    expect(wrapper.emitted('advance')).toEqual([[1, 'pending']])
+  })
+
+  it('shows no back button for a pending order', () => {
+    const wrapper = mount(OrderCard, { props: { order: pendingOrder } })
+
+    expect(wrapper.find('button.back').exists()).toBe(false)
   })
 })

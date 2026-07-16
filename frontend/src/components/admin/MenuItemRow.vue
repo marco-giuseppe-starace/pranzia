@@ -36,6 +36,11 @@ function save() {
   })
   editing.value = false
 }
+
+function remove() {
+  if (!window.confirm(`Eliminare il piatto "${props.item.name}"?`)) return
+  emit('delete', props.item.id)
+}
 </script>
 
 <template>
@@ -47,7 +52,7 @@ function save() {
     <td>{{ item.allergens.map((a) => a.name).join(', ') || '—' }}</td>
     <td>
       <button type="button" class="primary" @click="editing = true">Modifica</button>
-      <button type="button" class="danger" @click="emit('delete', item.id)">Elimina</button>
+      <button type="button" class="danger" @click="remove">Elimina</button>
     </td>
   </tr>
   <tr v-else class="editing">

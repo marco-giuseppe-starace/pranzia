@@ -8,9 +8,14 @@ const emit = defineEmits(['advance'])
 
 const STATUS_LABELS = { pending: 'In attesa', preparing: 'In preparazione', served: 'Servito' }
 const NEXT_STATUS = { pending: 'preparing', preparing: 'served' }
+const PREV_STATUS = { preparing: 'pending', served: 'preparing' }
 
 function nextStatus() {
   return NEXT_STATUS[props.order.status]
+}
+
+function prevStatus() {
+  return PREV_STATUS[props.order.status]
 }
 </script>
 
@@ -30,14 +35,25 @@ function nextStatus() {
 
     <footer>
       <span class="total">{{ Number(order.total).toFixed(2) }} &euro;</span>
-      <button
-        v-if="nextStatus()"
-        type="button"
-        :disabled="advancing"
-        @click="emit('advance', order.id, nextStatus())"
-      >
-        {{ advancing ? 'Aggiornamento...' : `Segna come "${STATUS_LABELS[nextStatus()]}"` }}
-      </button>
+      <div class="actions">
+        <button
+          v-if="prevStatus()"
+          type="button"
+          class="back"
+          :disabled="advancing"
+          @click="emit('advance', order.id, prevStatus())"
+        >
+          &larr; {{ STATUS_LABELS[prevStatus()] }}
+        </button>
+        <button
+          v-if="nextStatus()"
+          type="button"
+          :disabled="advancing"
+          @click="emit('advance', order.id, nextStatus())"
+        >
+          {{ advancing ? 'Aggiornamento...' : `Segna come "${STATUS_LABELS[nextStatus()]}"` }}
+        </button>
+      </div>
     </footer>
   </article>
 </template>
@@ -96,6 +112,11 @@ footer {
   font-weight: 600;
 }
 
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 button {
   background: #ef9f27;
   color: #412402;
@@ -110,5 +131,16 @@ button:disabled {
   background: #f4e2c2;
   color: #8a7654;
   cursor: default;
+}
+
+button.back {
+  background: none;
+  border: 1px solid #e0d9cc;
+  color: #8a7654;
+}
+
+button.back:disabled {
+  background: none;
+  border-color: #eee;
 }
 </style>

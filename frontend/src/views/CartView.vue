@@ -14,7 +14,35 @@ const error = ref(null)
 const orders = ref([])
 let pollTimer = null
 
+// Riga nota in modifica (order.id + item.id), e valore in bozza: usati per
+// mostrare l'input inline solo su una nota alla volta.
+const editingItemId = ref(null)
+const noteDraft = ref('')
+const noteError = ref(null)
+const notePlaceholder = ref('')
+
+// Suggerisce come esempio un ingrediente vero del piatto (preso dalla sua
+// descrizione), invece di un placeholder fisso sempre uguale per tutti i
+// piatti: piu' utile e concreto per il cliente che vuole togliere qualcosa.
+function randomIngredientPlaceholder(item) {
+  const description = item.menu_item_description
+  if (!description) return t('cart.notePlaceholder')
+
+  const ingredients = description
+    .replace(/\.$/, '')
+    .split(/,| e /i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  if (!ingredients.length) return t('cart.notePlaceholder')
+
+  const pick = ingredients[Math.floor(Math.random() * ingredients.length)]
+  return `${t('cart.notePlaceholderPrefix')} ${pick}`
+}
+
 async function submit() {
+  if (!window.confirm(t('cart.confirmSubmit'))) return
+
   submitting.value = true
   error.value = null
 
@@ -40,6 +68,30 @@ async function loadOrders() {
   if (!session.sessionId) return
   const response = await api.get(`/orders/${session.sessionId}`)
   orders.value = response.data
+}
+
+function startEditingNote(item) {
+  editingItemId.value = item.id
+  noteDraft.value = item.notes ?? ''
+  noteError.value = null
+  notePlaceholder.value = randomIngredientPlaceholder(item)
+}
+
+function cancelEditingNote() {
+  editingItemId.value = null
+  noteError.value = null
+}
+
+async function saveNote(order, item) {
+  noteError.value = null
+
+  try {
+    await api.patch(`/orders/${order.id}/items/${item.id}`, { notes: noteDraft.value })
+    editingItemId.value = null
+    await loadOrders()
+  } catch (e) {
+    noteError.value = e.message
+  }
 }
 
 onMounted(() => {
@@ -102,9 +154,29 @@ onUnmounted(() => {
         </header>
         <ul>
           <li v-for="item in order.items" :key="item.id">
-            {{ item.quantity }}x {{ item.menu_item_name }}
+            <div class="item-line">
+              <span>{{ item.quantity }}x {{ item.menu_item_name }}</span>
+              <button
+                v-if="order.status === 'pending' && editingItemId !== item.id"
+                type="button"
+                class="edit-note"
+                @click="startEditingNote(item)"
+              >
+                <span class="edit-note-icon" aria-hidden="true">&#9998;</span>
+                {{ item.notes ? t('cart.editNote') : t('cart.addNote') }}
+              </button>
+            </div>
+
+            <p v-if="item.notes && editingItemId !== item.id" class="notes">{{ item.notes }}</p>
+
+            <div v-if="editingItemId === item.id" class="note-editor">
+              <input v-model="noteDraft" type="text" :placeholder="notePlaceholder" />
+              <button type="button" class="save-note" @click="saveNote(order, item)">{{ t('cart.save') }}</button>
+              <button type="button" class="cancel-note" @click="cancelEditingNote">{{ t('cart.cancel') }}</button>
+            </div>
           </li>
         </ul>
+        <p v-if="noteError" class="error">{{ noteError }}</p>
         <footer>{{ Number(order.total).toFixed(2) }} &euro;</footer>
       </article>
     </section>
@@ -296,6 +368,96 @@ h1 {
   margin: 0;
   padding-left: 1.2rem;
   color: #444;
+  list-style: none;
+}
+
+.order ul li {
+  margin-bottom: 0.4rem;
+}
+
+.item-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.notes {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #8a7654;
+  font-style: italic;
+}
+
+.edit-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fdf1de;
+  border: 1px solid #f0dcb8;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem 0.2rem 0.4rem;
+  color: #d85a30;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.edit-note:hover {
+  background: #fbe6c4;
+}
+
+.edit-note:active {
+  transform: scale(0.96);
+}
+
+.edit-note-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #d85a30;
+  color: white;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.note-editor {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.note-editor input {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.save-note,
+.cancel-note {
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-note {
+  background: #ef9f27;
+  color: #412402;
+}
+
+.cancel-note {
+  background: #f4f1ea;
+  color: #412402;
 }
 
 .order footer {

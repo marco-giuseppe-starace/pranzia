@@ -6,9 +6,11 @@ use App\Enums\OrderStatus;
 use App\Enums\TableSessionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderItemNotesRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\MenuItem;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\TableSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -77,5 +79,25 @@ class OrderController extends Controller
             ->get();
 
         return OrderResource::collection($orders);
+    }
+
+    // Permette al cliente di correggere una nota (es. "senza salame" ->
+    // "senza mozzarella") finche' l'ordine e' ancora in attesa: una volta
+    // che la cucina lo prende in carico, la nota non e' piu' modificabile.
+    public function updateItemNotes(UpdateOrderItemNotesRequest $request, Order $order, OrderItem $item): JsonResponse
+    {
+        if ($item->order_id !== $order->id) {
+            abort(404);
+        }
+
+        if ($order->status !== OrderStatus::Pending) {
+            return response()->json([
+                'message' => 'L\'ordine e\' gia\' in preparazione, non e\' piu\' possibile modificarne le note.',
+            ], 422);
+        }
+
+        $item->update(['notes' => $request->validated('notes')]);
+
+        return OrderResource::make($order->fresh(['items.menuItem', 'session.table']))->response();
     }
 }
