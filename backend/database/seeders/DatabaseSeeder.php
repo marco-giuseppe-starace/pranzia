@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AllergenSeeder::class,
             MenuSeeder::class,
+            TableSeeder::class,
         ]);
     }
 }

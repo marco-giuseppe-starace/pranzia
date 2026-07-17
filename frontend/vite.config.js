@@ -34,12 +34,16 @@ export default defineConfig({
   ],
   server: {
     // In sviluppo il frontend gira su Vite, ma le chiamate /api devono
-    // raggiungere il backend Laravel servito da Laragon su pranzia.test.
+    // raggiungere il backend Laravel (php artisan serve).
     proxy: {
       '/api': {
-        target: 'http://pranzia.test',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },
+    // Permette l'accesso tramite il tunnel Cloudflare (trycloudflare.com)
+    // usato per testare l'app da telefono quando il firewall aziendale
+    // blocca le connessioni dirette sulla LAN.
+    allowedHosts: ['.trycloudflare.com'],
   },
 })

@@ -1,7 +1,7 @@
 // Client HTTP minimale per l'API Laravel: un fetch wrapper che centralizza
 // base URL, header JSON e parsing degli errori, senza bisogno di axios per
 // le poche chiamate di questo frontend.
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://pranzia.test/api'
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
 
 class ApiError extends Error {
   constructor(message, status, body) {

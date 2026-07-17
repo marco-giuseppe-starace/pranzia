@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
 import LandingView from '../views/LandingView.vue'
 import MenuView from '../views/MenuView.vue'
 import ChatView from '../views/ChatView.vue'
@@ -42,7 +43,7 @@ const router = createRouter({
       component: AdminAiCostsView,
       meta: { requiresAdmin: true },
     },
-    { path: '/', redirect: '/menu' },
+    { path: '/', name: 'home', component: HomeView },
   ],
 })
 
