@@ -13,7 +13,10 @@ class ApiError extends Error {
 
 async function request(path, { method = 'GET', body, token } = {}) {
   const headers = { Accept: 'application/json' }
-  if (body !== undefined) {
+  // FormData (upload immagini): niente Content-Type manuale, il browser
+  // imposta da solo multipart/form-data con il boundary corretto.
+  const isFormData = body instanceof FormData
+  if (body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json'
   }
   if (token) {
@@ -23,7 +26,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   })
 
   const isJson = response.headers.get('content-type')?.includes('application/json')

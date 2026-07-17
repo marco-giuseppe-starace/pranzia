@@ -40,6 +40,12 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+      // Immagini caricate dall'admin (menu_items.image_url), servite dal
+      // backend via storage:link.
+      '/storage': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
     },
     // Permette l'accesso tramite il tunnel Cloudflare (trycloudflare.com)
     // usato per testare l'app da telefono quando il firewall aziendale

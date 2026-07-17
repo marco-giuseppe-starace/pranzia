@@ -17,6 +17,7 @@ const error = ref(null)
 const newCategoryName = ref('')
 const newCategoryGroup = ref('food')
 const newItem = ref({ name: '', price: '', category_id: '' })
+const creatingItem = ref(false)
 
 // Le 3 macro-sezioni verticali in cui il cliente vede il menu (vedi
 // MenuView.vue): ogni categoria va assegnata a una di queste.
@@ -71,13 +72,18 @@ async function deleteCategory(id) {
 
 async function addItem() {
   await withErrorHandling(async () => {
-    await api.post('/admin/menu-items', {
-      name: newItem.value.name,
-      price: Number(newItem.value.price),
-      category_id: Number(newItem.value.category_id),
-    }, opts)
-    newItem.value = { name: '', price: '', category_id: '' }
-    await loadAll()
+    creatingItem.value = true
+    try {
+      await api.post('/admin/menu-items', {
+        name: newItem.value.name,
+        price: Number(newItem.value.price),
+        category_id: Number(newItem.value.category_id),
+      }, opts)
+      newItem.value = { name: '', price: '', category_id: '' }
+      await loadAll()
+    } finally {
+      creatingItem.value = false
+    }
   })
 }
 
@@ -93,6 +99,13 @@ async function deleteItem(id) {
     await api.delete(`/admin/menu-items/${id}`, opts)
     await loadAll()
   })
+}
+
+// L'upload foto (in MenuItemRow) aggiorna gia' il piatto lato server:
+// qui basta sostituire la riga in memoria, senza un giro completo di reload.
+function onImageUpdated(updatedItem) {
+  const index = items.value.findIndex((item) => item.id === updatedItem.id)
+  if (index !== -1) items.value[index] = updatedItem
 }
 
 onMounted(loadAll)
@@ -128,33 +141,46 @@ onMounted(loadAll)
 
     <section>
       <h2>Piatti</h2>
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>Categoria</th><th>Prezzo</th><th>Disponibile</th><th>Allergeni</th><th></th></tr>
-        </thead>
-        <tbody>
-          <MenuItemRow
-            v-for="item in items"
-            :key="item.id"
-            :item="item"
-            :categories="categories"
-            :allergens="allergens"
-            @update="updateItem"
-            @delete="deleteItem"
-          />
-        </tbody>
-      </table>
-      <form class="inline-form" @submit.prevent="addItem">
-        <input v-model="newItem.name" type="text" placeholder="Nome piatto" required />
-        <input v-model="newItem.price" type="number" step="0.01" min="0" placeholder="Prezzo" required />
-        <select v-model="newItem.category_id" required>
-          <option value="" disabled>Categoria</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-        <button type="submit">Aggiungi piatto</button>
+
+      <form class="new-item-panel inline-form" @submit.prevent="addItem">
+        <label>
+          Nome piatto
+          <input v-model="newItem.name" type="text" placeholder="Nome piatto" required />
+        </label>
+        <label>
+          Prezzo
+          <input v-model="newItem.price" type="number" step="0.01" min="0" placeholder="Prezzo" required />
+        </label>
+        <label>
+          Categoria
+          <select v-model="newItem.category_id" required>
+            <option value="" disabled>Categoria</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </label>
+        <button type="submit" :disabled="creatingItem">
+          {{ creatingItem ? 'Aggiunta...' : 'Aggiungi piatto' }}
+        </button>
       </form>
+      <p class="hint">
+        Dopo aver aggiunto il piatto, carica la foto passando il mouse sulla
+        sua card qui sotto (o toccandola da telefono).
+      </p>
+
+      <ul class="items-grid">
+        <MenuItemRow
+          v-for="item in items"
+          :key="item.id"
+          :item="item"
+          :categories="categories"
+          :allergens="allergens"
+          @update="updateItem"
+          @delete="deleteItem"
+          @image-updated="onImageUpdated"
+        />
+      </ul>
     </section>
   </AdminLayout>
 </template>
@@ -185,25 +211,66 @@ th, td {
 
 .inline-form {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+.inline-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #412402;
+  font-weight: 600;
 }
 
 .inline-form input,
 .inline-form select {
-  padding: 0.35rem;
+  padding: 0.45rem 0.6rem;
   border: 1px solid #ccc;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.new-item-panel {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(65, 36, 2, 0.06);
+}
+
+.hint {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.6rem 0 0;
+}
+
+.items-grid {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
 }
 
 button {
   background: #ef9f27;
   color: #412402;
   border: none;
-  border-radius: 0.4rem;
-  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
   font-size: 0.85rem;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .error {
