@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { api } from '../../api/client.js'
 import { useAdminAuthStore } from '../../stores/adminAuth.js'
 import AdminLayout from '../../layouts/AdminLayout.vue'
@@ -18,6 +18,26 @@ const newCategoryName = ref('')
 const newCategoryGroup = ref('food')
 const newItem = ref({ name: '', price: '', category_id: '' })
 const creatingItem = ref(false)
+
+// Filtri lato client sulla lista piatti: con tanti articoli scorrere una
+// griglia piatta diventa ingestibile, meglio poter restringere subito per
+// nome/categoria/disponibilita' (i piatti sono gia' tutti caricati in
+// memoria, niente bisogno di richieste al server per filtrare).
+const searchQuery = ref('')
+const filterCategoryId = ref('')
+const filterAvailability = ref('all')
+
+const filteredItems = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+
+  return items.value.filter((item) => {
+    if (query && !item.name.toLowerCase().includes(query)) return false
+    if (filterCategoryId.value && item.category_id !== Number(filterCategoryId.value)) return false
+    if (filterAvailability.value === 'available' && !item.available) return false
+    if (filterAvailability.value === 'unavailable' && item.available) return false
+    return true
+  })
+})
 
 // Le 3 macro-sezioni verticali in cui il cliente vede il menu (vedi
 // MenuView.vue): ogni categoria va assegnata a una di queste.
@@ -169,9 +189,34 @@ onMounted(loadAll)
         sua card qui sotto (o toccandola da telefono).
       </p>
 
+      <div class="filters">
+        <input
+          v-model="searchQuery"
+          type="search"
+          placeholder="Cerca piatto per nome..."
+          class="search-input"
+        />
+        <select v-model="filterCategoryId">
+          <option value="">Tutte le categorie</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <select v-model="filterAvailability">
+          <option value="all">Disponibili e non</option>
+          <option value="available">Solo disponibili</option>
+          <option value="unavailable">Solo non disponibili</option>
+        </select>
+        <span class="results-count">{{ filteredItems.length }} di {{ items.length }} piatti</span>
+      </div>
+
+      <p v-if="items.length && !filteredItems.length" class="hint">
+        Nessun piatto corrisponde ai filtri.
+      </p>
+
       <ul class="items-grid">
         <MenuItemRow
-          v-for="item in items"
+          v-for="item in filteredItems"
           :key="item.id"
           :item="item"
           :categories="categories"
@@ -246,6 +291,33 @@ th, td {
   color: #666;
   font-size: 0.85rem;
   margin: 0.6rem 0 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.search-input {
+  flex: 1 1 14rem;
+}
+
+.filters input,
+.filters select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.results-count {
+  color: #666;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  margin-left: auto;
 }
 
 .items-grid {
