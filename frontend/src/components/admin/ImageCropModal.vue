@@ -12,9 +12,11 @@ const emit = defineEmits(['confirm', 'cancel'])
 const imgEl = ref(null)
 let cropper = null
 
-// viewMode: 1 tiene il ritaglio dentro l'immagine (niente aree vuote);
-// dragMode 'move' cosi' si puo' spostare l'inquadratura trascinando al
-// centro, oltre a ridimensionarla dagli ancoraggi sugli angoli/bordi.
+// aspectRatio: 1 blocca il ritaglio a un quadrato, come il riquadro reale
+// delle card: cosi' l'anteprima qui sotto corrisponde esattamente a come
+// uscira' nel menu, senza margini vuoti imprevisti. Il "preview" di
+// Cropper.js aggiorna dal vivo l'anteprima mentre si trascinano le
+// maniglie, senza bisogno di ricalcolarla a mano ad ogni movimento.
 onMounted(() => {
   cropper = new Cropper(imgEl.value, {
     viewMode: 1,
@@ -22,6 +24,8 @@ onMounted(() => {
     background: false,
     autoCropArea: 1,
     responsive: true,
+    aspectRatio: 1,
+    preview: '.live-preview',
   })
 })
 
@@ -42,8 +46,15 @@ function confirm() {
       <h2>Ridimensiona foto</h2>
       <p class="hint">Trascina gli angoli per ritagliare, trascina al centro per spostare.</p>
 
-      <div class="crop-area">
-        <img ref="imgEl" :src="imageSrc" alt="" />
+      <div class="crop-layout">
+        <div class="crop-area">
+          <img ref="imgEl" :src="imageSrc" alt="" />
+        </div>
+
+        <div class="preview-col">
+          <span class="preview-label">Anteprima nel menu</span>
+          <div class="live-preview"></div>
+        </div>
       </div>
 
       <div class="actions">
@@ -71,7 +82,7 @@ function confirm() {
   border-radius: 0.75rem;
   padding: 1.25rem;
   width: 100%;
-  max-width: 32rem;
+  max-width: 40rem;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -88,8 +99,16 @@ h2 {
   font-size: 0.82rem;
 }
 
+.crop-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
 .crop-area {
-  max-height: 60vh;
+  flex: 1 1 20rem;
+  max-height: 55vh;
   overflow: hidden;
   background: #222;
   border-radius: 0.5rem;
@@ -98,6 +117,47 @@ h2 {
 .crop-area img {
   display: block;
   max-width: 100%;
+}
+
+.preview-col {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.preview-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #412402;
+}
+
+/* La stessa identica veste grafica del riquadro reale nelle card (sfondo
+   a gradiente, filigrana ripetuta, arrotondamento): cosi' quello che si
+   vede qui e' proprio come uscira', non un'approssimazione. */
+.live-preview {
+  position: relative;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fdf1de, #f6d9a8);
+}
+
+.live-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='130'%20height='65'%3E%3Ctext%20x='-8'%20y='40'%20transform='rotate(-18%2065%2032)'%20font-family='sans-serif'%20font-weight='700'%20font-size='17'%20fill='rgba(65,36,2,0.16)'%3EPranzIA%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+.live-preview :deep(img) {
+  position: relative;
+  z-index: 1;
 }
 
 .actions {
