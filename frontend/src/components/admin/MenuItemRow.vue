@@ -223,8 +223,8 @@ function onCropConfirm(blob) {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 9rem;
+  aspect-ratio: 1 / 1;
+  max-height: 11rem;
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
   cursor: pointer;
