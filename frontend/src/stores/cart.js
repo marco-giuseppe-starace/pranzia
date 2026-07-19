@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia'
+import { useSessionStore } from './session.js'
 
-const STORAGE_KEY = 'pranzia.cart'
+// Il carrello e' legato alla sessione (non una chiave fissa globale): due
+// tavoli/sessioni diverse sullo stesso telefono non devono mai vedere il
+// carrello l'uno dell'altro, ed evita che un carrello vecchio ricompaia
+// riaprendo il sito per un tavolo nuovo.
+export function cartStorageKey(sessionId) {
+  return `pranzia.cart.${sessionId ?? 'anonymous'}`
+}
 
-function loadPersisted() {
+function loadPersisted(sessionId) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
+    return JSON.parse(localStorage.getItem(cartStorageKey(sessionId))) ?? []
   } catch {
     return []
   }
@@ -12,7 +19,7 @@ function loadPersisted() {
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: loadPersisted(),
+    items: loadPersisted(useSessionStore().sessionId),
   }),
   getters: {
     count: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
@@ -58,7 +65,15 @@ export const useCartStore = defineStore('cart', {
       this.persist()
     },
     persist() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items))
+      localStorage.setItem(cartStorageKey(useSessionStore().sessionId), JSON.stringify(this.items))
+    },
+    // Richiamato quando un'altra tab con la stessa sessione (stesso
+    // storage: es. piu' tab aperte sullo stesso telefono/browser) modifica
+    // il carrello, cosi' questa tab non resta con uno stato vecchio in
+    // memoria finche' non viene ricaricata (vedi listener 'storage' in
+    // App.vue).
+    syncFromStorage() {
+      this.items = loadPersisted(useSessionStore().sessionId)
     },
   },
 })
