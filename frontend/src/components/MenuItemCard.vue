@@ -133,10 +133,8 @@ function decrement() {
   z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
-  border-radius: 0.2rem;
-  filter: drop-shadow(0 4px 7px rgba(65, 36, 2, 0.22));
 }
 
 .thumb-placeholder {

@@ -269,10 +269,8 @@ async function deleteImage() {
   z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
-  border-radius: 0.25rem;
-  filter: drop-shadow(0 6px 10px rgba(65, 36, 2, 0.22));
 }
 
 .thumb-placeholder {

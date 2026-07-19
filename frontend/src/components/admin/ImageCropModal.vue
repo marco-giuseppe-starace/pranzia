@@ -12,11 +12,12 @@ const emit = defineEmits(['confirm', 'cancel'])
 const imgEl = ref(null)
 let cropper = null
 
-// aspectRatio: 1 blocca il ritaglio a un quadrato, come il riquadro reale
-// delle card: cosi' l'anteprima qui sotto corrisponde esattamente a come
-// uscira' nel menu, senza margini vuoti imprevisti. Il "preview" di
-// Cropper.js aggiorna dal vivo l'anteprima mentre si trascinano le
-// maniglie, senza bisogno di ricalcolarla a mano ad ogni movimento.
+// Nessun aspectRatio fisso: si sceglie liberamente qualunque porzione,
+// anche non quadrata. Il riquadro reale delle card usa object-fit: cover,
+// quindi qualunque selezione (anche "storta" o piu' larga del quadrato
+// finale) viene comunque scalata per riempirlo tutto, ritagliando
+// l'eccesso — esattamente quello che "preview" di Cropper.js mostra qui
+// sotto in tempo reale mentre si trascinano le maniglie.
 onMounted(() => {
   cropper = new Cropper(imgEl.value, {
     viewMode: 1,
@@ -24,7 +25,6 @@ onMounted(() => {
     background: false,
     autoCropArea: 1,
     responsive: true,
-    aspectRatio: 1,
     preview: '.live-preview',
   })
 })
