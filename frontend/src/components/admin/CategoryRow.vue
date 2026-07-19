@@ -1,11 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import { useConfirmDialogStore } from '../../stores/confirmDialog.js'
 
 const props = defineProps({
   category: { type: Object, required: true },
 })
 
 const emit = defineEmits(['update', 'delete'])
+
+const confirmDialog = useConfirmDialogStore()
 
 const GROUP_LABELS = { food: 'Cibo', drink: 'Bevande', dessert: 'Dolci' }
 
@@ -19,8 +22,9 @@ function save() {
   editing.value = false
 }
 
-function remove() {
-  if (!window.confirm(`Eliminare la categoria "${props.category.name}"?`)) return
+async function remove() {
+  const confirmed = await confirmDialog.confirm(`Eliminare la categoria "${props.category.name}"?`, { danger: true })
+  if (!confirmed) return
   emit('delete', props.category.id)
 }
 </script>

@@ -3,10 +3,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { api } from '../api/client.js'
 import { useCartStore } from '../stores/cart.js'
 import { useSessionStore } from '../stores/session.js'
+import { useConfirmDialogStore } from '../stores/confirmDialog.js'
 import { useI18n } from '../i18n/index.js'
 
 const cart = useCartStore()
 const session = useSessionStore()
+const confirmDialog = useConfirmDialogStore()
 const { t } = useI18n()
 
 const submitting = ref(false)
@@ -41,7 +43,7 @@ function randomIngredientPlaceholder(item) {
 }
 
 async function submit() {
-  if (!window.confirm(t('cart.confirmSubmit'))) return
+  if (!(await confirmDialog.confirm(t('cart.confirmSubmit')))) return
 
   submitting.value = true
   error.value = null

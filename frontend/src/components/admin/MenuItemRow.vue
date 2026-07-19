@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { api } from '../../api/client.js'
 import { useAdminAuthStore } from '../../stores/adminAuth.js'
+import { useConfirmDialogStore } from '../../stores/confirmDialog.js'
 import ImageCropModal from './ImageCropModal.vue'
 
 const props = defineProps({
@@ -13,6 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['update', 'delete', 'image-updated'])
 
 const adminAuth = useAdminAuthStore()
+const confirmDialog = useConfirmDialogStore()
 
 const editing = ref(false)
 const name = ref(props.item.name)
@@ -51,8 +53,9 @@ function save() {
   editing.value = false
 }
 
-function remove() {
-  if (!window.confirm(`Eliminare il piatto "${props.item.name}"?`)) return
+async function remove() {
+  const confirmed = await confirmDialog.confirm(`Eliminare il piatto "${props.item.name}"?`, { danger: true })
+  if (!confirmed) return
   emit('delete', props.item.id)
 }
 
@@ -103,6 +106,23 @@ function onCropConfirm(blob) {
   cropModalOpen.value = false
   uploadImage(blob)
 }
+
+async function deleteImage() {
+  showActions.value = false
+  const confirmed = await confirmDialog.confirm(`Eliminare la foto di "${props.item.name}"?`, { danger: true })
+  if (!confirmed) return
+
+  uploadError.value = null
+  uploading.value = true
+  try {
+    const response = await api.delete(`/admin/menu-items/${props.item.id}/image`, { token: adminAuth.token })
+    emit('image-updated', response.data)
+  } catch (e) {
+    uploadError.value = e.body?.message ?? 'Eliminazione immagine non riuscita.'
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -114,9 +134,10 @@ function onCropConfirm(blob) {
       <span v-if="uploading" class="thumb-overlay uploading">Caricamento...</span>
       <div v-else class="thumb-overlay">
         <button type="button" class="thumb-action" @click.stop="triggerFileInput">Cambia foto</button>
-        <button v-if="item.image_url" type="button" class="thumb-action" @click.stop="openCropModal">
-          Ridimensiona foto
-        </button>
+        <template v-if="item.image_url">
+          <button type="button" class="thumb-action" @click.stop="openCropModal">Ridimensiona foto</button>
+          <button type="button" class="thumb-action danger" @click.stop="deleteImage">Elimina foto</button>
+        </template>
       </div>
 
       <input
@@ -309,6 +330,15 @@ function onCropConfirm(blob) {
 
 .thumb-action:hover {
   background: #fdf1de;
+}
+
+.thumb-action.danger {
+  background: #d85a30;
+  color: white;
+}
+
+.thumb-action.danger:hover {
+  background: #c14e28;
 }
 
 .hidden-input {

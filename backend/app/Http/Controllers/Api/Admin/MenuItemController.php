@@ -68,6 +68,14 @@ class MenuItemController extends Controller
         return MenuItemResource::make($menuItem->fresh('allergens'))->response();
     }
 
+    public function destroyImage(MenuItem $menuItem): JsonResponse
+    {
+        $this->deleteImageFile($menuItem);
+        $menuItem->update(['image_url' => null]);
+
+        return MenuItemResource::make($menuItem->fresh('allergens'))->response();
+    }
+
     private function deleteImageFile(MenuItem $menuItem): void
     {
         if ($menuItem->image_url) {

@@ -2,9 +2,11 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { api } from '../../api/client.js'
 import { useAdminAuthStore } from '../../stores/adminAuth.js'
+import { useConfirmDialogStore } from '../../stores/confirmDialog.js'
 import AdminLayout from '../../layouts/AdminLayout.vue'
 
 const adminAuth = useAdminAuthStore()
+const confirmDialog = useConfirmDialogStore()
 const opts = { token: adminAuth.token }
 
 const tables = ref([])
@@ -20,7 +22,10 @@ async function loadTables() {
 
 async function closeSession(tableNumber, tableId) {
   if (closingIds.value.includes(tableId)) return
-  if (!window.confirm(`Chiudere la sessione del Tavolo ${tableNumber}? Se il cliente vuole ordinare ancora dovra' riscansionare il QR.`)) return
+  const confirmed = await confirmDialog.confirm(
+    `Chiudere la sessione del Tavolo ${tableNumber}? Se il cliente vuole ordinare ancora dovra' riscansionare il QR.`,
+  )
+  if (!confirmed) return
 
   closingIds.value.push(tableId)
 

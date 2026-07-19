@@ -63,4 +63,8 @@ export default {
   language: {
     label: 'Lingua',
   },
+  confirmDialog: {
+    confirm: 'Conferma',
+    cancel: 'Annulla',
+  },
 }

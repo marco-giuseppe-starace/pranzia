@@ -1,6 +1,7 @@
 <script setup>
 import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 
 // Le rotte /admin/* hanno il proprio layout (AdminLayout), niente header
 // cliente (carrello, lingua, nav menu/chat). La home (elenco QR demo) non
@@ -12,4 +13,5 @@ const showHeader = () => route.path !== '/' && !route.path.startsWith('/admin')
 <template>
   <AppHeader v-if="showHeader()" />
   <RouterView />
+  <ConfirmDialog />
 </template>
