@@ -108,15 +108,29 @@ function decrement() {
 }
 
 .thumb {
+  position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
   padding: 0.6rem;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='110'%20height='55'%3E%3Ctext%20x='-6'%20y='34'%20transform='rotate(-18%2055%2027)'%20font-family='sans-serif'%20font-weight='700'%20font-size='14'%20fill='rgba(65,36,2,0.16)'%3EPranzIA%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .thumb img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -126,6 +140,8 @@ function decrement() {
 }
 
 .thumb-placeholder {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: flex;
