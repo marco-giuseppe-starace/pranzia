@@ -7,6 +7,7 @@ import CartView from '../views/CartView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminOrdersView from '../views/admin/AdminOrdersView.vue'
 import AdminTablesView from '../views/admin/AdminTablesView.vue'
+import AdminCashRegisterView from '../views/admin/AdminCashRegisterView.vue'
 import AdminMenuView from '../views/admin/AdminMenuView.vue'
 import AdminAiCostsView from '../views/admin/AdminAiCostsView.vue'
 import { useAdminAuthStore } from '../stores/adminAuth.js'
@@ -29,6 +30,12 @@ const router = createRouter({
       path: '/admin/tables',
       name: 'admin-tables',
       component: AdminTablesView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/cash-register',
+      name: 'admin-cash-register',
+      component: AdminCashRegisterView,
       meta: { requiresAdmin: true },
     },
     {

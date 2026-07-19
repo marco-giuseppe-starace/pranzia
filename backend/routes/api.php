@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\AiCostController;
 use App\Http\Controllers\Api\Admin\AllergenController;
 use App\Http\Controllers\Api\Admin\AuthController;
+use App\Http\Controllers\Api\Admin\CashRegisterController;
 use App\Http\Controllers\Api\Admin\MenuCategoryController;
 use App\Http\Controllers\Api\Admin\MenuItemController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
@@ -46,5 +47,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/ai-costs', [AiCostController::class, 'index']);
         Route::get('/tables', [AdminTableController::class, 'index']);
         Route::post('/tables/{table}/close-session', [AdminTableController::class, 'closeSession']);
+        Route::get('/cash-register', [CashRegisterController::class, 'index']);
+        Route::post('/cash-register/{tableSession}/pay', [CashRegisterController::class, 'pay']);
     });
 });

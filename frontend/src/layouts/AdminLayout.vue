@@ -18,6 +18,7 @@ async function logout() {
       <nav>
         <RouterLink to="/admin/orders">Ordini</RouterLink>
         <RouterLink to="/admin/tables">Tavoli</RouterLink>
+        <RouterLink to="/admin/cash-register">In cassa</RouterLink>
         <RouterLink to="/admin/menu">Menu</RouterLink>
         <RouterLink to="/admin/ai-costs">Costi IA</RouterLink>
       </nav>
