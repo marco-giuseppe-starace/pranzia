@@ -21,6 +21,7 @@ async function logout() {
         <RouterLink to="/admin/cash-register">In cassa</RouterLink>
         <RouterLink to="/admin/menu">Menu</RouterLink>
         <RouterLink to="/admin/ai-costs">Costi IA</RouterLink>
+        <RouterLink to="/admin/settings">Impostazioni</RouterLink>
       </nav>
       <button type="button" class="logout" @click="logout">Esci</button>
     </header>

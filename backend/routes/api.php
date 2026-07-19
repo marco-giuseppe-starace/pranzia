@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\CashRegisterController;
 use App\Http\Controllers\Api\Admin\MenuCategoryController;
 use App\Http\Controllers\Api\Admin\MenuItemController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Api\Admin\SettingsController;
 use App\Http\Controllers\Api\Admin\TableController as AdminTableController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\MenuController;
@@ -49,5 +50,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/tables/{table}/close-session', [AdminTableController::class, 'closeSession']);
         Route::get('/cash-register', [CashRegisterController::class, 'index']);
         Route::post('/cash-register/{tableSession}/pay', [CashRegisterController::class, 'pay']);
+        Route::get('/settings', [SettingsController::class, 'index']);
+        Route::put('/settings', [SettingsController::class, 'update']);
     });
 });

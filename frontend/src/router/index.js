@@ -10,6 +10,7 @@ import AdminTablesView from '../views/admin/AdminTablesView.vue'
 import AdminCashRegisterView from '../views/admin/AdminCashRegisterView.vue'
 import AdminMenuView from '../views/admin/AdminMenuView.vue'
 import AdminAiCostsView from '../views/admin/AdminAiCostsView.vue'
+import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 import { useAdminAuthStore } from '../stores/adminAuth.js'
 
 const router = createRouter({
@@ -48,6 +49,12 @@ const router = createRouter({
       path: '/admin/ai-costs',
       name: 'admin-ai-costs',
       component: AdminAiCostsView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/settings',
+      name: 'admin-settings',
+      component: AdminSettingsView,
       meta: { requiresAdmin: true },
     },
     { path: '/', name: 'home', component: HomeView },
