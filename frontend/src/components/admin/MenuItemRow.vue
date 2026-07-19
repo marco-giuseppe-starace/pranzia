@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { api } from '../../api/client.js'
 import { useAdminAuthStore } from '../../stores/adminAuth.js'
+import ImageCropModal from './ImageCropModal.vue'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -22,6 +23,12 @@ const allergenIds = ref(props.item.allergens.map((a) => a.id))
 
 const uploading = ref(false)
 const uploadError = ref(null)
+const fileInputEl = ref(null)
+// Su desktop le due opzioni compaiono al passaggio del mouse (:hover in
+// CSS); su touch non esiste hover, quindi il primo tocco sulla foto le
+// mostra tramite questo stato, e un secondo tocco su un pulsante agisce.
+const showActions = ref(false)
+const cropModalOpen = ref(false)
 
 function categoryName(id) {
   return props.categories.find((c) => c.id === id)?.name ?? '—'
@@ -49,18 +56,15 @@ function remove() {
   emit('delete', props.item.id)
 }
 
-// L'upload parte subito alla scelta del file (niente pulsante di conferma
-// separato): piu' rapido per lo staff che deve caricare tante foto di fila.
-async function onFileSelected(event) {
-  const file = event.target.files[0]
-  event.target.value = ''
-  if (!file) return
-
+// L'upload parte subito alla scelta del file/al ritaglio (niente pulsante
+// di conferma separato oltre a quello del crop): piu' rapido per lo staff
+// che deve caricare tante foto di fila.
+async function uploadImage(fileOrBlob) {
   uploadError.value = null
   uploading.value = true
   try {
     const formData = new FormData()
-    formData.append('image', file)
+    formData.append('image', fileOrBlob, 'foto.jpg')
     const response = await api.post(`/admin/menu-items/${props.item.id}/image`, formData, {
       token: adminAuth.token,
     })
@@ -71,16 +75,69 @@ async function onFileSelected(event) {
     uploading.value = false
   }
 }
+
+function onFileSelected(event) {
+  const file = event.target.files[0]
+  event.target.value = ''
+  showActions.value = false
+  if (file) uploadImage(file)
+}
+
+function onThumbClick() {
+  // Il tocco (o click) sulla foto stessa apre/chiude il menu delle due
+  // opzioni, invece di scattare direttamente una delle due azioni.
+  showActions.value = !showActions.value
+}
+
+function triggerFileInput() {
+  showActions.value = false
+  fileInputEl.value.click()
+}
+
+function openCropModal() {
+  showActions.value = false
+  cropModalOpen.value = true
+}
+
+function onCropConfirm(blob) {
+  cropModalOpen.value = false
+  uploadImage(blob)
+}
 </script>
 
 <template>
   <li class="item-card" :class="{ unavailable: !item.available }">
-    <label class="thumb">
+    <div class="thumb" :class="{ active: showActions }" @click="onThumbClick">
       <img v-if="item.image_url" :src="item.image_url" :alt="item.name" />
       <span v-else class="thumb-placeholder" aria-hidden="true">{{ item.name.charAt(0) }}</span>
-      <span class="thumb-overlay">{{ uploading ? 'Caricamento...' : 'Cambia foto' }}</span>
-      <input type="file" accept="image/*" :disabled="uploading" @change="onFileSelected" />
-    </label>
+
+      <span v-if="uploading" class="thumb-overlay uploading">Caricamento...</span>
+      <div v-else class="thumb-overlay">
+        <button type="button" class="thumb-action" @click.stop="triggerFileInput">Cambia foto</button>
+        <button v-if="item.image_url" type="button" class="thumb-action" @click.stop="openCropModal">
+          Ridimensiona foto
+        </button>
+      </div>
+
+      <input
+        ref="fileInputEl"
+        type="file"
+        accept="image/*"
+        class="hidden-input"
+        :disabled="uploading"
+        @click.stop
+        @change="onFileSelected"
+      />
+    </div>
+
+    <Teleport to="body">
+      <ImageCropModal
+        v-if="cropModalOpen"
+        :image-src="item.image_url"
+        @confirm="onCropConfirm"
+        @cancel="cropModalOpen = false"
+      />
+    </Teleport>
 
     <div class="body">
       <p v-if="uploadError" class="error">{{ uploadError }}</p>
@@ -187,27 +244,52 @@ async function onFileSelected(event) {
 
 .thumb-overlay {
   position: absolute;
-  inset: auto 0 0 0;
+  inset: 0;
   background: rgba(65, 36, 2, 0.72);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-align: center;
-  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   opacity: 0;
   transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.thumb-overlay.uploading {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .thumb:hover .thumb-overlay,
-.thumb:focus-within .thumb-overlay {
+.thumb:focus-within .thumb-overlay,
+.thumb.active .thumb-overlay {
   opacity: 1;
+  pointer-events: auto;
 }
 
-.thumb input[type='file'] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
+.thumb-action {
+  background: white;
+  color: #412402;
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.thumb-action:hover {
+  background: #fdf1de;
+}
+
+.hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .body {
