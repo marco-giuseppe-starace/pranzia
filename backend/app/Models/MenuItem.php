@@ -18,6 +18,7 @@ class MenuItem extends Model
         'price',
         'available',
         'image_url',
+        'original_image_path',
     ];
 
     protected $casts = [

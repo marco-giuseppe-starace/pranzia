@@ -10,6 +10,7 @@ use App\Http\Resources\MenuItemResource;
 use App\Models\MenuItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -47,22 +48,67 @@ class MenuItemController extends Controller
 
     public function destroy(MenuItem $menuItem): JsonResponse
     {
-        $this->deleteImageFile($menuItem);
+        $this->deleteImageFiles($menuItem);
         $menuItem->delete();
 
         return response()->json(status: 204);
     }
 
-    // URL relativo (non Storage::url(), che prefissa APP_URL): cosi' il
-    // frontend lo risolve sempre rispetto alla propria origin, passando dal
-    // proxy /storage di Vite in sviluppo (vedi vite.config.js), qualunque
-    // sia l'host con cui e' stata caricata la pagina.
+    // Sostituisce completamente la foto (pulsante "Cambia foto"): salva il
+    // file caricato sia come "originale" intoccato (per poterlo ripristinare
+    // in seguito) sia come copia mostrata nelle card, rifilata e
+    // ridimensionata.
     public function uploadImage(UploadMenuItemImageRequest $request, MenuItem $menuItem): JsonResponse
     {
-        $this->deleteImageFile($menuItem);
+        $this->deleteImageFiles($menuItem);
+
+        $file = $request->file('image');
+        $originalPath = $file->store('menu-items/originals', 'public');
+        $displayPath = $file->store('menu-items', 'public');
+        $this->resizeImage(Storage::disk('public')->path($displayPath), trim: true);
+
+        $menuItem->update([
+            'image_url' => '/storage/'.$displayPath,
+            'original_image_path' => $originalPath,
+        ]);
+
+        return MenuItemResource::make($menuItem->fresh('allergens'))->response();
+    }
+
+    // Salva il risultato di "Ridimensiona foto": sostituisce solo la copia
+    // mostrata nelle card, l'originale resta intoccato cosi' si puo'
+    // sempre tornare indietro con "Ripristina originale".
+    public function cropImage(UploadMenuItemImageRequest $request, MenuItem $menuItem): JsonResponse
+    {
+        if ($menuItem->image_url) {
+            Storage::disk('public')->delete(Str::after($menuItem->image_url, '/storage/'));
+        }
 
         $path = $request->file('image')->store('menu-items', 'public');
-        $this->resizeImage(Storage::disk('public')->path($path));
+        // Gia' ritagliato a mano dall'admin: nessun rifilo automatico, solo
+        // un tetto massimo alla risoluzione.
+        $this->resizeImage(Storage::disk('public')->path($path), trim: false);
+        $menuItem->update(['image_url' => '/storage/'.$path]);
+
+        return MenuItemResource::make($menuItem->fresh('allergens'))->response();
+    }
+
+    // Rigenera la copia mostrata nelle card a partire dall'originale
+    // conservato, scartando qualunque ritaglio manuale fatto in seguito.
+    public function restoreOriginalImage(MenuItem $menuItem): JsonResponse
+    {
+        if (! $menuItem->original_image_path) {
+            return response()->json(['message' => 'Nessun originale disponibile per questo piatto.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ($menuItem->image_url) {
+            Storage::disk('public')->delete(Str::after($menuItem->image_url, '/storage/'));
+        }
+
+        $path = 'menu-items/'.Str::random(40).'.'.pathinfo($menuItem->original_image_path, PATHINFO_EXTENSION);
+        Storage::disk('public')->copy($menuItem->original_image_path, $path);
+        $this->resizeImage(Storage::disk('public')->path($path), trim: true);
+
         $menuItem->update(['image_url' => '/storage/'.$path]);
 
         return MenuItemResource::make($menuItem->fresh('allergens'))->response();
@@ -70,16 +116,19 @@ class MenuItemController extends Controller
 
     public function destroyImage(MenuItem $menuItem): JsonResponse
     {
-        $this->deleteImageFile($menuItem);
-        $menuItem->update(['image_url' => null]);
+        $this->deleteImageFiles($menuItem);
+        $menuItem->update(['image_url' => null, 'original_image_path' => null]);
 
         return MenuItemResource::make($menuItem->fresh('allergens'))->response();
     }
 
-    private function deleteImageFile(MenuItem $menuItem): void
+    private function deleteImageFiles(MenuItem $menuItem): void
     {
         if ($menuItem->image_url) {
             Storage::disk('public')->delete(Str::after($menuItem->image_url, '/storage/'));
+        }
+        if ($menuItem->original_image_path) {
+            Storage::disk('public')->delete($menuItem->original_image_path);
         }
     }
 
@@ -88,7 +137,7 @@ class MenuItemController extends Controller
     // le ridimensioniamo qui una volta sola invece di far scaricare al
     // cliente (spesso da rete mobile al tavolo) l'originale a piena
     // risoluzione ogni volta che apre il menu.
-    private function resizeImage(string $absolutePath, int $maxDimension = 1600): void
+    private function resizeImage(string $absolutePath, bool $trim, int $maxDimension = 1600): void
     {
         $info = @getimagesize($absolutePath);
         if (! $info) {
@@ -127,15 +176,18 @@ class MenuItemController extends Controller
         // Molte foto prodotto (es. bottiglie su sfondo bianco) hanno un
         // grosso margine vuoto attorno al soggetto: rifilandolo, il
         // soggetto riempie molto meglio la miniatura piccola e quadrata
-        // usata dalle card.
-        [$cropX, $cropY, $cropWidth, $cropHeight] = $this->trimUniformBorder($source, $width, $height);
-        if ($cropWidth < $width || $cropHeight < $height) {
-            $cropped = imagecrop($source, ['x' => $cropX, 'y' => $cropY, 'width' => $cropWidth, 'height' => $cropHeight]);
-            if ($cropped !== false) {
-                imagedestroy($source);
-                $source = $cropped;
-                $width = $cropWidth;
-                $height = $cropHeight;
+        // usata dalle card. Si salta per le foto gia' ritagliate a mano
+        // (vedi cropImage()): l'admin ha gia' scelto lui l'inquadratura.
+        if ($trim) {
+            [$cropX, $cropY, $cropWidth, $cropHeight] = $this->trimUniformBorder($source, $width, $height);
+            if ($cropWidth < $width || $cropHeight < $height) {
+                $cropped = imagecrop($source, ['x' => $cropX, 'y' => $cropY, 'width' => $cropWidth, 'height' => $cropHeight]);
+                if ($cropped !== false) {
+                    imagedestroy($source);
+                    $source = $cropped;
+                    $width = $cropWidth;
+                    $height = $cropHeight;
+                }
             }
         }
 

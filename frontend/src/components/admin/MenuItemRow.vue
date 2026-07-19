@@ -59,36 +59,54 @@ async function remove() {
   emit('delete', props.item.id)
 }
 
-// L'upload parte subito alla scelta del file/al ritaglio (niente pulsante
-// di conferma separato oltre a quello del crop): piu' rapido per lo staff
-// che deve caricare tante foto di fila.
-async function uploadImage(fileOrBlob) {
+// Azione parte subito (niente pulsante di conferma separato oltre a
+// quello del crop/le conferme di eliminazione): piu' rapido per lo staff
+// che deve sistemare tante foto di fila.
+async function runImageAction(request, errorFallback) {
   uploadError.value = null
   uploading.value = true
   try {
-    const formData = new FormData()
-    formData.append('image', fileOrBlob, 'foto.jpg')
-    const response = await api.post(`/admin/menu-items/${props.item.id}/image`, formData, {
-      token: adminAuth.token,
-    })
+    const response = await request()
     emit('image-updated', response.data)
   } catch (e) {
-    uploadError.value = e.body?.message ?? 'Caricamento immagine non riuscito.'
+    uploadError.value = e.body?.message ?? errorFallback
   } finally {
     uploading.value = false
   }
+}
+
+// Sostituisce completamente la foto: diventa il nuovo "originale"
+// ripristinabile in seguito.
+function uploadNewImage(file) {
+  const formData = new FormData()
+  formData.append('image', file, 'foto.jpg')
+  return runImageAction(
+    () => api.post(`/admin/menu-items/${props.item.id}/image`, formData, { token: adminAuth.token }),
+    'Caricamento immagine non riuscito.',
+  )
+}
+
+// Salva solo il ritaglio: l'originale caricato in precedenza resta
+// intoccato, cosi' "Ripristina originale" puo' sempre tornare indietro.
+function saveCrop(blob) {
+  const formData = new FormData()
+  formData.append('image', blob, 'ritaglio.jpg')
+  return runImageAction(
+    () => api.post(`/admin/menu-items/${props.item.id}/image/crop`, formData, { token: adminAuth.token }),
+    'Salvataggio ritaglio non riuscito.',
+  )
 }
 
 function onFileSelected(event) {
   const file = event.target.files[0]
   event.target.value = ''
   showActions.value = false
-  if (file) uploadImage(file)
+  if (file) uploadNewImage(file)
 }
 
 function onThumbClick() {
-  // Il tocco (o click) sulla foto stessa apre/chiude il menu delle due
-  // opzioni, invece di scattare direttamente una delle due azioni.
+  // Il tocco (o click) sulla foto stessa apre/chiude il menu delle
+  // opzioni, invece di scattare direttamente una di esse.
   showActions.value = !showActions.value
 }
 
@@ -104,7 +122,21 @@ function openCropModal() {
 
 function onCropConfirm(blob) {
   cropModalOpen.value = false
-  uploadImage(blob)
+  saveCrop(blob)
+}
+
+async function restoreOriginal() {
+  showActions.value = false
+  const confirmed = await confirmDialog.confirm(
+    `Ripristinare la foto originale di "${props.item.name}"? Il ritaglio/le modifiche attuali andranno persi.`,
+    { danger: true },
+  )
+  if (!confirmed) return
+
+  await runImageAction(
+    () => api.post(`/admin/menu-items/${props.item.id}/image/restore`, {}, { token: adminAuth.token }),
+    'Ripristino immagine non riuscito.',
+  )
 }
 
 async function deleteImage() {
@@ -112,16 +144,10 @@ async function deleteImage() {
   const confirmed = await confirmDialog.confirm(`Eliminare la foto di "${props.item.name}"?`, { danger: true })
   if (!confirmed) return
 
-  uploadError.value = null
-  uploading.value = true
-  try {
-    const response = await api.delete(`/admin/menu-items/${props.item.id}/image`, { token: adminAuth.token })
-    emit('image-updated', response.data)
-  } catch (e) {
-    uploadError.value = e.body?.message ?? 'Eliminazione immagine non riuscita.'
-  } finally {
-    uploading.value = false
-  }
+  await runImageAction(
+    () => api.delete(`/admin/menu-items/${props.item.id}/image`, { token: adminAuth.token }),
+    'Eliminazione immagine non riuscita.',
+  )
 }
 </script>
 
@@ -136,6 +162,9 @@ async function deleteImage() {
         <button type="button" class="thumb-action" @click.stop="triggerFileInput">Cambia foto</button>
         <template v-if="item.image_url">
           <button type="button" class="thumb-action" @click.stop="openCropModal">Ridimensiona foto</button>
+          <button v-if="item.has_original_image" type="button" class="thumb-action" @click.stop="restoreOriginal">
+            Ripristina originale
+          </button>
           <button type="button" class="thumb-action danger" @click.stop="deleteImage">Elimina foto</button>
         </template>
       </div>

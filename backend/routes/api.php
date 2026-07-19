@@ -36,6 +36,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::apiResource('menu-items', MenuItemController::class)->except(['show']);
         Route::post('/menu-items/{menuItem}/image', [MenuItemController::class, 'uploadImage']);
+        Route::post('/menu-items/{menuItem}/image/crop', [MenuItemController::class, 'cropImage']);
+        Route::post('/menu-items/{menuItem}/image/restore', [MenuItemController::class, 'restoreOriginalImage']);
         Route::delete('/menu-items/{menuItem}/image', [MenuItemController::class, 'destroyImage']);
         Route::apiResource('menu-categories', MenuCategoryController::class)->except(['show']);
         Route::apiResource('allergens', AllergenController::class)->except(['show']);

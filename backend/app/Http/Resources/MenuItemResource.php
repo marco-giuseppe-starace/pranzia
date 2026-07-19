@@ -17,6 +17,9 @@ class MenuItemResource extends JsonResource
             'price' => $this->price,
             'available' => $this->available,
             'image_url' => $this->image_url,
+            // Pilota se mostrare "Ripristina originale" in admin: non
+            // esponiamo il path di storage vero e proprio, solo se esiste.
+            'has_original_image' => (bool) $this->original_image_path,
             // Allergeni verificati manualmente dallo staff (vedi docs/ia-guardrail.md).
             'allergens' => AllergenResource::collection($this->whenLoaded('allergens')),
         ];
