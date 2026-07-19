@@ -207,6 +207,12 @@ function onCropConfirm(blob) {
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(65, 36, 2, 0.06);
   font-family: 'Inter', system-ui, sans-serif;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.item-card:hover {
+  box-shadow: 0 6px 16px rgba(65, 36, 2, 0.14);
+  transform: translateY(-2px);
 }
 
 .item-card.unavailable {
@@ -217,10 +223,12 @@ function onCropConfirm(blob) {
   position: relative;
   display: block;
   width: 100%;
-  height: 8rem;
+  aspect-ratio: 4 / 3;
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
   cursor: pointer;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .thumb img {
@@ -228,6 +236,8 @@ function onCropConfirm(blob) {
   height: 100%;
   object-fit: contain;
   display: block;
+  border-radius: 0.25rem;
+  filter: drop-shadow(0 6px 10px rgba(65, 36, 2, 0.22));
 }
 
 .thumb-placeholder {

@@ -112,6 +112,8 @@ function decrement() {
   height: 6.5rem;
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
+  padding: 0.6rem;
+  box-sizing: border-box;
 }
 
 .thumb img {
@@ -119,6 +121,8 @@ function decrement() {
   height: 100%;
   object-fit: contain;
   display: block;
+  border-radius: 0.2rem;
+  filter: drop-shadow(0 4px 7px rgba(65, 36, 2, 0.22));
 }
 
 .thumb-placeholder {
