@@ -13,6 +13,7 @@ const tables = ref([])
 // Id dei tavoli con una chiusura sessione in corso: disabilita il
 // relativo pulsante finche' la richiesta non e' completata.
 const closingIds = ref([])
+const error = ref(null)
 let pollTimer = null
 
 async function loadTables() {
@@ -27,11 +28,14 @@ async function closeSession(tableNumber, tableId) {
   )
   if (!confirmed) return
 
+  error.value = null
   closingIds.value.push(tableId)
 
   try {
     await api.post(`/admin/tables/${tableId}/close-session`, {}, opts)
     await loadTables()
+  } catch (e) {
+    error.value = e.body?.message ?? 'Chiusura tavolo non riuscita.'
   } finally {
     closingIds.value = closingIds.value.filter((id) => id !== tableId)
   }
@@ -55,17 +59,24 @@ onUnmounted(() => clearInterval(pollTimer))
       Chiudi la sessione di un tavolo quando i clienti se ne vanno: cosi' la
       prossima scansione dello stesso QR apre una sessione nuova, invece di
       mostrare ai clienti successivi il carrello e lo storico ordini di chi
-      era seduto prima.
+      era seduto prima. Un tavolo va prima incassato da "In cassa": non si
+      puo' chiudere un tavolo occupato non ancora pagato.
     </p>
+
+    <p v-if="error" class="error">{{ error }}</p>
 
     <ul class="tables">
       <li v-for="table in tables" :key="table.id" class="table" :class="table.status">
         <span class="number">Tavolo {{ table.number }}</span>
         <span class="status">{{ table.status === 'active' ? 'Occupato' : 'Libero' }}</span>
+        <span v-if="table.status === 'active'" class="paid-badge" :class="{ paid: table.paid }">
+          {{ table.paid ? 'Pagato' : 'Da incassare' }}
+        </span>
         <button
           v-if="table.status === 'active'"
           type="button"
-          :disabled="closingIds.includes(table.id)"
+          :disabled="closingIds.includes(table.id) || !table.paid"
+          :title="table.paid ? '' : 'Incassa il tavolo da \'In cassa\' prima di poterlo chiudere'"
           @click="closeSession(table.number, table.id)"
         >
           {{ closingIds.includes(table.id) ? 'Chiusura...' : 'Chiudi tavolo' }}
@@ -120,6 +131,27 @@ h1 {
 .status {
   font-size: 0.85rem;
   color: #555;
+}
+
+.paid-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  background: #fbe4dc;
+  color: #a13f1e;
+}
+
+.paid-badge.paid {
+  background: #e6f2e1;
+  color: #3f6b31;
+}
+
+.error {
+  color: #d85a30;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
 }
 
 button {

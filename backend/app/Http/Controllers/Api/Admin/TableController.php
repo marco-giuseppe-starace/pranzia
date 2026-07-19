@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Enums\TableSessionStatus;
+use App\Exceptions\TableSessionNotPaidException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\TableResource;
 use App\Models\DiningTable;
@@ -20,12 +21,18 @@ class TableController extends Controller
         return TableResource::collection($tables);
     }
 
-    // Chiude la sessione attiva del tavolo (se presente), cosi' la
-    // prossima scansione dello stesso QR apre una sessione nuova invece
-    // di riusare quella - ormai conclusa - del cliente precedente.
+    // Chiude (libera) il tavolo quando i clienti se ne vanno fisicamente:
+    // richiede che la sessione sia gia' stata incassata da "In cassa",
+    // altrimenti lo staff rischierebbe di liberare un tavolo non pagato.
     public function closeSession(DiningTable $table): JsonResponse
     {
-        $table->activeSession?->update(['status' => TableSessionStatus::Closed]);
+        $session = $table->activeSession;
+
+        if ($session && ! $session->paid_at) {
+            throw new TableSessionNotPaidException();
+        }
+
+        $session?->update(['status' => TableSessionStatus::Closed]);
 
         return TableResource::make($table->fresh('activeSession'))->response();
     }

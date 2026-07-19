@@ -12,29 +12,35 @@ const opts = { token: adminAuth.token }
 const tables = ref([])
 const todayTotal = ref('0')
 const todayCount = ref(0)
+const error = ref(null)
 // Id delle sessioni con un incasso in corso: disabilita il relativo
 // pulsante finche' la richiesta non e' completata.
 const payingIds = ref([])
 let pollTimer = null
 
 async function load() {
+  // A differenza delle altre rotte admin, questa non passa da una Laravel
+  // Resource: la risposta non e' avvolta in { data: ... }.
   const response = await api.get('/admin/cash-register', opts)
-  tables.value = response.data.tables
-  todayTotal.value = response.data.today_total
-  todayCount.value = response.data.today_count
+  tables.value = response.tables
+  todayTotal.value = response.today_total
+  todayCount.value = response.today_count
 }
 
 async function pay(table) {
   if (payingIds.value.includes(table.session_id)) return
   const confirmed = await confirmDialog.confirm(
-    `Incassare il Tavolo ${table.number}? Totale ${Number(table.total).toFixed(2)} €. La sessione verra' chiusa.`,
+    `Incassare il Tavolo ${table.number}? Totale ${Number(table.total).toFixed(2)} €.`,
   )
   if (!confirmed) return
 
+  error.value = null
   payingIds.value.push(table.session_id)
   try {
     await api.post(`/admin/cash-register/${table.session_id}/pay`, {}, opts)
     await load()
+  } catch (e) {
+    error.value = e.body?.message ?? 'Incasso non riuscito.'
   } finally {
     payingIds.value = payingIds.value.filter((id) => id !== table.session_id)
   }
@@ -54,10 +60,12 @@ onUnmounted(() => clearInterval(pollTimer))
   <AdminLayout>
     <h1>In cassa</h1>
     <p class="hint">
-      Incassa un tavolo quando i clienti pagano: la sessione si chiude, cosi'
-      la prossima scansione dello stesso QR ne apre una nuova.
+      Incassa un tavolo quando i clienti pagano: il tavolo resta occupato
+      finche' non lo liberi da "Tavoli" con "Chiudi tavolo" (permesso solo
+      dopo l'incasso).
     </p>
 
+    <p v-if="error" class="error">{{ error }}</p>
     <p v-if="!tables.length" class="empty">Nessun tavolo da incassare al momento.</p>
 
     <ul class="tables">
@@ -101,6 +109,12 @@ h1 {
 .empty {
   color: #666;
   font-size: 0.9rem;
+}
+
+.error {
+  color: #d85a30;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .tables {

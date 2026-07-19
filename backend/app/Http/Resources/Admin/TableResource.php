@@ -19,6 +19,9 @@ class TableResource extends JsonResource
             'number' => $this->number,
             'status' => $activeSession ? TableSessionStatus::Active->value : TableSessionStatus::Closed->value,
             'active_session_id' => $activeSession?->id,
+            // Pilota se "Chiudi tavolo" e' permesso (vedi
+            // TableController::closeSession).
+            'paid' => (bool) $activeSession?->paid_at,
         ];
     }
 }

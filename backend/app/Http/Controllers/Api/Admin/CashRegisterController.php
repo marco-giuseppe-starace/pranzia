@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Enums\TableSessionStatus;
+use App\Exceptions\TableSessionNotActiveException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\CashRegisterTableResource;
 use App\Models\DiningTable;
@@ -13,14 +14,17 @@ use Illuminate\Support\Facades\Date;
 
 class CashRegisterController extends Controller
 {
-    // Tavoli ancora da incassare (sessione attiva) con il totale corrente,
-    // piu' il totale di quanto gia' incassato oggi.
+    // Tavoli con sessione attiva non ancora incassata, con il totale
+    // corrente, piu' il totale di quanto gia' incassato oggi. Un tavolo
+    // gia' incassato ma non ancora chiuso (i clienti sono ancora seduti)
+    // non compare piu' qui: non c'e' altro da fare finche' non se ne vanno
+    // (vedi TableController::closeSession, che a quel punto lo sblocca).
     public function index(): JsonResponse
     {
         $tables = DiningTable::with('activeSession.orders')
             ->orderBy('number')
             ->get()
-            ->filter(fn (DiningTable $table) => $table->activeSession)
+            ->filter(fn (DiningTable $table) => $table->activeSession && ! $table->activeSession->paid_at)
             ->values();
 
         return response()->json([
@@ -30,20 +34,17 @@ class CashRegisterController extends Controller
         ]);
     }
 
-    // Incassa il tavolo: registra l'orario di pagamento e chiude la
-    // sessione, cosi' la prossima scansione dello stesso QR ne apre una
-    // nuova invece di riusare quella - ormai pagata - del cliente
-    // precedente (stessa logica di TableController::closeSession).
+    // Incassa il tavolo: registra solo l'orario di pagamento. La sessione
+    // resta attiva (il tavolo puo' restare occupato: i clienti pagano ma
+    // magari non se ne vanno subito) finche' lo staff non lo libera da
+    // "Tavoli" con "Chiudi tavolo", ora permesso solo dopo l'incasso.
     public function pay(TableSession $tableSession): JsonResponse
     {
         if ($tableSession->status !== TableSessionStatus::Active) {
-            return response()->json(['message' => 'Questa sessione non e\' piu\' attiva.'], 422);
+            throw new TableSessionNotActiveException();
         }
 
-        $tableSession->update([
-            'status' => TableSessionStatus::Closed,
-            'paid_at' => now(),
-        ]);
+        $tableSession->update(['paid_at' => now()]);
 
         return response()->json([
             'today_total' => $this->todayTotal(),
