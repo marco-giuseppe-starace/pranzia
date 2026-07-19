@@ -249,7 +249,7 @@ async function deleteImage() {
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
   cursor: pointer;
-  padding: 1rem;
+  padding: 0.3rem;
   box-sizing: border-box;
   overflow: hidden;
 }

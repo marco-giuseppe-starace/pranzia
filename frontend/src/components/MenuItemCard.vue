@@ -113,7 +113,7 @@ function decrement() {
   aspect-ratio: 1 / 1;
   flex-shrink: 0;
   background: linear-gradient(135deg, #fdf1de, #f6d9a8);
-  padding: 0.6rem;
+  padding: 0.2rem;
   box-sizing: border-box;
   overflow: hidden;
 }
