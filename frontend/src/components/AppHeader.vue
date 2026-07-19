@@ -1,10 +1,25 @@
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
 import { useCartStore } from '../stores/cart.js'
+import { useSessionStore } from '../stores/session.js'
 import { useI18n } from '../i18n/index.js'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
 const cart = useCartStore()
+const session = useSessionStore()
 const { t } = useI18n()
+
+let pollTimer = null
+
+onMounted(() => {
+  session.refreshPaidStatus()
+  // Polling leggero: la voce "Ricevuta" deve comparire da sola non
+  // appena lo staff incassa il tavolo, senza che il cliente debba
+  // ricaricare la pagina.
+  pollTimer = setInterval(session.refreshPaidStatus, 10_000)
+})
+
+onUnmounted(() => clearInterval(pollTimer))
 </script>
 
 <template>
@@ -21,6 +36,7 @@ const { t } = useI18n()
         {{ t('nav.cart') }}
         <span v-if="cart.count > 0" class="cart-badge">{{ cart.count }}</span>
       </RouterLink>
+      <RouterLink v-if="session.paid" to="/receipt">{{ t('nav.receipt') }}</RouterLink>
     </nav>
 
     <LanguageSwitcher />

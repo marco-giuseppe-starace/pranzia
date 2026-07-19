@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSessionRequest;
 use App\Http\Resources\TableSessionResource;
 use App\Models\DiningTable;
+use App\Models\TableSession;
 use Illuminate\Http\JsonResponse;
 
 class SessionController extends Controller
@@ -41,5 +42,13 @@ class SessionController extends Controller
         $session->setRelation('table', $table);
 
         return TableSessionResource::make($session)->response();
+    }
+
+    // Interrogato dal frontend cliente (polling leggero) per sapere quando
+    // lo staff ha incassato il tavolo, cosi' da mostrare la voce
+    // "Ricevuta" solo a quel punto.
+    public function status(TableSession $tableSession): JsonResponse
+    {
+        return response()->json(['paid' => (bool) $tableSession->paid_at]);
     }
 }

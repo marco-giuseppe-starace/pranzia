@@ -7,6 +7,7 @@ export default {
     menu: 'Menu',
     chat: 'Chiedi consiglio',
     cart: 'Carrello',
+    receipt: 'Ricevuta',
   },
   menu: {
     title: 'Menu',
@@ -66,5 +67,16 @@ export default {
   confirmDialog: {
     confirm: 'Conferma',
     cancel: 'Annulla',
+  },
+  receipt: {
+    title: 'Ricevuta',
+    itemsSubtotal: 'Subtotale piatti',
+    coverCharge: 'Coperto',
+    downloadPdf: 'Scarica PDF',
+    emailLabel: 'Ricevila via email',
+    emailPlaceholder: 'La tua email',
+    sendEmail: 'Invia',
+    emailSent: 'Ricevuta inviata.',
+    emailError: 'Invio non riuscito, riprova.',
   },
 }

@@ -16,7 +16,15 @@ const error = ref(null)
 // Id delle sessioni con un incasso in corso: disabilita il relativo
 // pulsante finche' la richiesta non e' completata.
 const payingIds = ref([])
+// Coperti per sessione (session_id -> numero), usati per calcolare il
+// totale coperto nella ricevuta: di default 1, lo staff lo corregge prima
+// di incassare se al tavolo ci sono piu' persone.
+const guestsBySession = ref({})
 let pollTimer = null
+
+function guestsFor(sessionId) {
+  return guestsBySession.value[sessionId] ?? 1
+}
 
 async function load() {
   // A differenza delle altre rotte admin, questa non passa da una Laravel
@@ -25,19 +33,25 @@ async function load() {
   tables.value = response.tables
   todayTotal.value = response.today_total
   todayCount.value = response.today_count
+  for (const table of response.tables) {
+    if (!(table.session_id in guestsBySession.value)) {
+      guestsBySession.value[table.session_id] = 1
+    }
+  }
 }
 
 async function pay(table) {
   if (payingIds.value.includes(table.session_id)) return
+  const guests = guestsFor(table.session_id)
   const confirmed = await confirmDialog.confirm(
-    `Incassare il Tavolo ${table.number}? Totale ${Number(table.total).toFixed(2)} €.`,
+    `Incassare il Tavolo ${table.number}? Totale piatti ${Number(table.total).toFixed(2)} € + coperto per ${guests} persone.`,
   )
   if (!confirmed) return
 
   error.value = null
   payingIds.value.push(table.session_id)
   try {
-    await api.post(`/admin/cash-register/${table.session_id}/pay`, {}, opts)
+    await api.post(`/admin/cash-register/${table.session_id}/pay`, { guests }, opts)
     await load()
   } catch (e) {
     error.value = e.body?.message ?? 'Incasso non riuscito.'
@@ -75,6 +89,15 @@ onUnmounted(() => clearInterval(pollTimer))
           <span class="orders">{{ table.order_count }} ordine{{ table.order_count === 1 ? '' : 'i' }}</span>
         </div>
         <span class="total">{{ Number(table.total).toFixed(2) }} &euro;</span>
+        <label class="guests">
+          Coperti
+          <input
+            v-model.number="guestsBySession[table.session_id]"
+            type="number"
+            min="1"
+            max="100"
+          />
+        </label>
         <button
           type="button"
           :disabled="payingIds.includes(table.session_id)"
@@ -157,6 +180,25 @@ h1 {
   font-weight: 700;
   color: #412402;
   font-size: 1.05rem;
+}
+
+.guests {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.72rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.guests input {
+  width: 3.2rem;
+  padding: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  text-align: center;
+  font: inherit;
 }
 
 button {

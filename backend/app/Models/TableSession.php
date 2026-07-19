@@ -12,7 +12,7 @@ class TableSession extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['table_id', 'language', 'status', 'started_at', 'paid_at'];
+    protected $fillable = ['table_id', 'language', 'status', 'started_at', 'paid_at', 'guests'];
 
     protected $casts = [
         'status' => TableSessionStatus::class,

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\TableController as AdminTableController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReceiptController;
 use App\Http\Controllers\Api\SessionController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,9 +20,16 @@ use Illuminate\Support\Facades\Route;
 // tramite qr_token del tavolo.
 Route::get('/menu', [MenuController::class, 'index']);
 Route::post('/session', [SessionController::class, 'store']);
+Route::get('/sessions/{tableSession}/status', [SessionController::class, 'status']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{sessionId}', [OrderController::class, 'show']);
 Route::patch('/orders/{order}/items/{item}', [OrderController::class, 'updateItemNotes']);
+
+// Ricevuta: disponibile solo dopo l'incasso (vedi
+// ReceiptController::receiptData / ReceiptNotAvailableException).
+Route::get('/sessions/{tableSession}/receipt', [ReceiptController::class, 'show']);
+Route::get('/sessions/{tableSession}/receipt/pdf', [ReceiptController::class, 'pdf']);
+Route::post('/sessions/{tableSession}/receipt/email', [ReceiptController::class, 'email']);
 
 // Rotte IA pubbliche: rate limit per sessione tavolo (non per IP), per
 // evitare abusi/costi eccessivi senza penalizzare un tavolo condiviso.

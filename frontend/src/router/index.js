@@ -4,6 +4,7 @@ import LandingView from '../views/LandingView.vue'
 import MenuView from '../views/MenuView.vue'
 import ChatView from '../views/ChatView.vue'
 import CartView from '../views/CartView.vue'
+import ReceiptView from '../views/ReceiptView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminOrdersView from '../views/admin/AdminOrdersView.vue'
 import AdminTablesView from '../views/admin/AdminTablesView.vue'
@@ -20,6 +21,7 @@ const router = createRouter({
     { path: '/menu', name: 'menu', component: MenuView },
     { path: '/chat', name: 'chat', component: ChatView },
     { path: '/cart', name: 'cart', component: CartView },
+    { path: '/receipt', name: 'receipt', component: ReceiptView },
     { path: '/admin/login', name: 'admin-login', component: AdminLoginView },
     {
       path: '/admin/orders',

@@ -16,6 +16,7 @@ class TableSessionResource extends JsonResource
             'language' => $this->language,
             'status' => $this->status,
             'started_at' => $this->started_at,
+            'paid' => (bool) $this->paid_at,
         ];
     }
 }

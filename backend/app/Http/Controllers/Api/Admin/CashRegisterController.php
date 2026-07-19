@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Enums\TableSessionStatus;
 use App\Exceptions\TableSessionNotActiveException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PayTableSessionRequest;
 use App\Http\Resources\Admin\CashRegisterTableResource;
 use App\Models\DiningTable;
 use App\Models\Order;
@@ -38,13 +39,16 @@ class CashRegisterController extends Controller
     // resta attiva (il tavolo puo' restare occupato: i clienti pagano ma
     // magari non se ne vanno subito) finche' lo staff non lo libera da
     // "Tavoli" con "Chiudi tavolo", ora permesso solo dopo l'incasso.
-    public function pay(TableSession $tableSession): JsonResponse
+    public function pay(PayTableSessionRequest $request, TableSession $tableSession): JsonResponse
     {
         if ($tableSession->status !== TableSessionStatus::Active) {
             throw new TableSessionNotActiveException();
         }
 
-        $tableSession->update(['paid_at' => now()]);
+        $tableSession->update([
+            'paid_at' => now(),
+            'guests' => $request->integer('guests', 1),
+        ]);
 
         return response()->json([
             'today_total' => $this->todayTotal(),
