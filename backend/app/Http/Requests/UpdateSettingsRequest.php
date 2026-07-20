@@ -16,6 +16,7 @@ class UpdateSettingsRequest extends FormRequest
         return [
             'table_count' => ['required', 'integer', 'min:1', 'max:200'],
             'cover_charge' => ['required', 'numeric', 'min:0'],
+            'anthropic_api_key' => ['nullable', 'string', 'min:10'],
         ];
     }
 }

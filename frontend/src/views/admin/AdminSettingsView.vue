@@ -9,6 +9,13 @@ const opts = { token: adminAuth.token }
 
 const tableCount = ref(10)
 const coverCharge = ref(0)
+// Valore corrente camuffato (es. "sk-ant-a**********"), mai la chiave
+// vera: arriva gia' cosi' dal backend, che non la restituisce mai per
+// intero dopo il primo salvataggio.
+const anthropicApiKeyMasked = ref(null)
+// Nuovo valore digitato dallo staff: vuoto = "non cambiare la chiave
+// attuale", cosi' salvare le altre impostazioni non la cancella.
+const anthropicApiKeyInput = ref('')
 const loading = ref(true)
 const saving = ref(false)
 const error = ref(null)
@@ -19,6 +26,7 @@ async function load() {
   const response = await api.get('/admin/settings', opts)
   tableCount.value = response.table_count
   coverCharge.value = Number(response.cover_charge)
+  anthropicApiKeyMasked.value = response.anthropic_api_key_masked
   loading.value = false
 }
 
@@ -27,10 +35,16 @@ async function save() {
   saved.value = false
   saving.value = true
   try {
-    await api.put('/admin/settings', {
+    const payload = {
       table_count: Number(tableCount.value),
       cover_charge: Number(coverCharge.value),
-    }, opts)
+    }
+    if (anthropicApiKeyInput.value) {
+      payload.anthropic_api_key = anthropicApiKeyInput.value
+    }
+    const response = await api.put('/admin/settings', payload, opts)
+    anthropicApiKeyMasked.value = response.anthropic_api_key_masked
+    anthropicApiKeyInput.value = ''
     saved.value = true
     setTimeout(() => { saved.value = false }, 2000)
   } catch (e) {
@@ -61,6 +75,20 @@ onMounted(load)
         Prezzo del coperto (&euro;)
         <input v-model="coverCharge" type="number" min="0" step="0.01" required />
       </label>
+
+      <label>
+        Chiave API IA (Anthropic)
+        <input
+          v-model="anthropicApiKeyInput"
+          type="password"
+          autocomplete="off"
+          :placeholder="anthropicApiKeyMasked ?? 'sk-ant-...'"
+        />
+      </label>
+      <p class="field-hint">
+        <template v-if="anthropicApiKeyMasked">Chiave attuale: {{ anthropicApiKeyMasked }}. </template>
+        Lascia vuoto per non modificarla.
+      </p>
 
       <p v-if="error" class="error">{{ error }}</p>
       <p v-if="saved" class="success">Impostazioni salvate.</p>
