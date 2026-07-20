@@ -8,10 +8,16 @@ import { useCartStore, cartStorageKey } from './stores/cart.js'
 import { useSessionStore } from './stores/session.js'
 
 // Le rotte /admin/* hanno il proprio layout (AdminLayout), niente header
-// cliente (carrello, lingua, nav menu/chat). La home (elenco QR demo) non
-// ha ancora una sessione tavolo attiva, quindi niente header nemmeno li'.
+// cliente (carrello, lingua, nav menu/chat). La home (elenco QR demo) e la
+// schermata di apertura sessione (/t/:qrToken, "Apertura sessione...") non
+// hanno ancora una sessione tavolo stabilita, quindi niente header nemmeno
+// li': evita anche che l'header lanci una richiesta di stato con l'id di
+// sessione vecchio (rimasto in localStorage da una visita precedente)
+// mentre la pagina di atterraggio ne sta aprendo/riprendendo una nuova,
+// che altrimenti in rari casi arrivava per prima e faceva
+// apparire/sparire il modal coperti con dati sbagliati per un istante.
 const route = useRoute()
-const showHeader = () => route.path !== '/' && !route.path.startsWith('/admin')
+const showHeader = () => route.path !== '/' && route.name !== 'landing' && !route.path.startsWith('/admin')
 
 // Stesse rotte dell'header cliente: il modal coperti non ha senso in
 // admin/home (nessuna sessione tavolo attiva li').

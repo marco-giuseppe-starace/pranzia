@@ -48,9 +48,17 @@ export const useSessionStore = defineStore('session', {
     // per mostrare la voce "Ricevuta" non appena lo staff incassa il
     // tavolo, e per sapere se un altro telefono dello stesso tavolo ha
     // gia' inserito i coperti.
+    //
+    // Guardia anti-race: se sessionId cambia mentre questa richiesta e'
+    // in volo (es. la pagina di atterraggio sta aprendo/riprendendo la
+    // sessione giusta proprio in quel momento), la risposta arrivata per
+    // l'id vecchio va scartata invece di sovrascrivere lo stato piu'
+    // recente.
     async refreshStatus() {
-      if (!this.sessionId) return
-      const response = await api.get(`/sessions/${this.sessionId}/status`)
+      const requestedFor = this.sessionId
+      if (!requestedFor) return
+      const response = await api.get(`/sessions/${requestedFor}/status`)
+      if (this.sessionId !== requestedFor) return
       this.paid = response.paid
       this.guests = response.guests
     },
