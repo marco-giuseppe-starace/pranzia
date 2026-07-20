@@ -16,6 +16,8 @@ const error = ref(null)
 // Id delle sessioni con un incasso in corso: disabilita il relativo
 // pulsante finche' la richiesta non e' completata.
 const payingIds = ref([])
+// Stesso meccanismo per l'invio dell'anteprima del conto.
+const sendingReceiptIds = ref([])
 // Coperti per sessione (session_id -> numero): precompilati con quanto
 // gia' inserito dal cliente prima di ordinare (vedi GuestsModal.vue lato
 // cliente), lo staff puo' comunque correggerli prima di incassare.
@@ -60,6 +62,28 @@ async function pay(table) {
   }
 }
 
+// Rende visibile al cliente l'anteprima del conto (totale e divisione tra
+// i coperti) senza incassare: utile mentre i clienti decidono come
+// pagare, ad esempio dividendosi il conto "alla romana".
+async function sendReceipt(table) {
+  if (sendingReceiptIds.value.includes(table.session_id)) return
+
+  error.value = null
+  sendingReceiptIds.value.push(table.session_id)
+  try {
+    await api.post(
+      `/admin/cash-register/${table.session_id}/send-receipt`,
+      { guests: guestsFor(table.session_id) },
+      opts,
+    )
+    await load()
+  } catch (e) {
+    error.value = e.body?.message ?? 'Invio ricevuta non riuscito.'
+  } finally {
+    sendingReceiptIds.value = sendingReceiptIds.value.filter((id) => id !== table.session_id)
+  }
+}
+
 onMounted(() => {
   load()
   // Polling per riflettere in tempo (quasi) reale nuovi ordini/tavoli,
@@ -98,6 +122,14 @@ onUnmounted(() => clearInterval(pollTimer))
             max="100"
           />
         </label>
+        <button
+          type="button"
+          class="send-receipt"
+          :disabled="sendingReceiptIds.includes(table.session_id)"
+          @click="sendReceipt(table)"
+        >
+          {{ sendingReceiptIds.includes(table.session_id) ? 'Invio...' : (table.receipt_sent ? 'Ricevuta inviata ✓' : 'Invia ricevuta') }}
+        </button>
         <button
           type="button"
           :disabled="payingIds.includes(table.session_id)"
@@ -214,6 +246,13 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.send-receipt {
+  background: #fdf1de;
+  color: #412402;
+  border: 1px solid #f0dcb8;
+  white-space: nowrap;
 }
 
 .totals {

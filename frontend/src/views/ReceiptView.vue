@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { api } from '../api/client.js'
 import { useSessionStore } from '../stores/session.js'
 import { useI18n } from '../i18n/index.js'
@@ -14,10 +14,21 @@ const sending = ref(false)
 const sent = ref(false)
 const emailError = ref(null)
 
+// In quante persone dividere il conto (pagamento alla romana): precompilato
+// con i coperti del tavolo, ma modificabile nel caso i clienti vogliano
+// dividerlo diversamente (es. qualcuno offre, o non tutti erano a cena).
+const splitCount = ref(1)
+
+const perPerson = computed(() => {
+  if (!receipt.value || splitCount.value < 1) return 0
+  return receipt.value.total / splitCount.value
+})
+
 async function load() {
   error.value = null
   try {
     receipt.value = await api.get(`/sessions/${session.sessionId}/receipt`)
+    splitCount.value = receipt.value.guests || 1
   } catch (e) {
     error.value = e.body?.message ?? e.message
   }
@@ -47,11 +58,12 @@ onMounted(load)
 
 <template>
   <main class="receipt">
-    <h1>{{ t('receipt.title') }}</h1>
+    <h1>{{ receipt && !receipt.paid ? t('receipt.previewTitle') : t('receipt.title') }}</h1>
 
     <p v-if="error" class="error">{{ error }}</p>
 
     <template v-if="receipt">
+      <p v-if="!receipt.paid" class="preview-hint">{{ t('receipt.previewHint') }}</p>
       <p class="table-number">{{ t('cart.table') }} {{ receipt.table_number }}</p>
 
       <ul class="lines">
@@ -77,6 +89,18 @@ onMounted(load)
           <span>{{ t('cart.total') }}</span>
           <span>{{ receipt.total.toFixed(2) }} &euro;</span>
         </div>
+      </div>
+
+      <div class="split">
+        <h2>{{ t('receipt.splitTitle') }}</h2>
+        <p class="split-hint">{{ t('receipt.splitHint') }}</p>
+        <label class="split-count">
+          {{ t('receipt.splitPeopleLabel') }}
+          <input v-model.number="splitCount" type="number" min="1" max="100" />
+        </label>
+        <p class="split-result">
+          {{ t('receipt.splitPerPerson') }}: <strong>{{ perPerson.toFixed(2) }} &euro;</strong>
+        </p>
       </div>
 
       <a class="download" :href="downloadUrl()" target="_blank" rel="noopener">{{ t('receipt.downloadPdf') }}</a>
@@ -112,6 +136,64 @@ h1 {
   color: #d85a30;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+.preview-hint {
+  background: #fdf1de;
+  color: #8a6a2f;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.split {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  background: #f4f1ea;
+  border-radius: 0.75rem;
+}
+
+.split h2 {
+  font-family: 'Baloo 2', sans-serif;
+  color: #412402;
+  font-size: 1.05rem;
+  margin: 0 0 0.2rem;
+}
+
+.split-hint {
+  color: #666;
+  font-size: 0.8rem;
+  margin: 0 0 0.75rem;
+}
+
+.split-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #412402;
+}
+
+.split-count input {
+  width: 4rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  text-align: center;
+  font: inherit;
+}
+
+.split-result {
+  margin: 0.6rem 0 0;
+  color: #412402;
+}
+
+.split-result strong {
+  font-size: 1.15rem;
+  color: #d85a30;
 }
 
 .lines {

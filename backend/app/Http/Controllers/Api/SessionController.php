@@ -46,13 +46,15 @@ class SessionController extends Controller
     }
 
     // Interrogato dal frontend cliente per sapere quando lo staff ha
-    // incassato il tavolo (mostra "Ricevuta") e se i coperti sono gia'
-    // stati inseriti (guests null = non ancora, mostra il modal
-    // bloccante prima di poter ordinare).
+    // incassato il tavolo o inviato un'anteprima del conto (in entrambi i
+    // casi mostra "Ricevuta") e se i coperti sono gia' stati inseriti
+    // (guests null = non ancora, mostra il modal bloccante prima di poter
+    // ordinare).
     public function status(TableSession $tableSession): JsonResponse
     {
         return response()->json([
             'paid' => (bool) $tableSession->paid_at,
+            'receipt_sent' => (bool) $tableSession->receipt_sent_at,
             'guests' => $tableSession->guests,
         ]);
     }

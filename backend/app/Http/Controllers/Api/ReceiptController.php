@@ -42,7 +42,11 @@ class ReceiptController extends Controller
     // canali mostrano sempre esattamente lo stesso conto.
     private function receiptData(TableSession $tableSession): array
     {
-        if (! $tableSession->paid_at) {
+        // Disponibile anche prima dell'incasso vero e proprio, se lo staff
+        // ha inviato un'anteprima dalla cassa ("Invia ricevuta"): serve ai
+        // clienti per vedere il totale e dividersi il conto mentre decidono
+        // come pagare.
+        if (! $tableSession->paid_at && ! $tableSession->receipt_sent_at) {
             throw new ReceiptNotAvailableException();
         }
 
@@ -65,6 +69,10 @@ class ReceiptController extends Controller
         return [
             'session_id' => $tableSession->id,
             'table_number' => $tableSession->table->number,
+            // Distingue l'anteprima pre-incasso dalla ricevuta ufficiale:
+            // il frontend cambia titolo/testo di conseguenza (vedi
+            // ReceiptView.vue).
+            'paid' => (bool) $tableSession->paid_at,
             'paid_at' => $tableSession->paid_at,
             'guests' => $tableSession->guests,
             'cover_charge' => $coverCharge,

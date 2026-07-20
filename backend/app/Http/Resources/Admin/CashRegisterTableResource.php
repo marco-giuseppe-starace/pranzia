@@ -26,6 +26,7 @@ class CashRegisterTableResource extends JsonResource
             // sessione aperta prima di questa funzione): lo staff lo vede
             // pre-compilato e puo' comunque correggerlo.
             'guests' => $session->guests,
+            'receipt_sent' => (bool) $session->receipt_sent_at,
         ];
     }
 }

@@ -76,6 +76,8 @@ export default {
   },
   receipt: {
     title: 'Ricevuta',
+    previewTitle: 'Conto',
+    previewHint: 'Conto non ancora saldato: mostralo allo staff per pagare.',
     itemsSubtotal: 'Subtotale piatti',
     coverCharge: 'Coperto',
     downloadPdf: 'Scarica PDF',
@@ -84,6 +86,10 @@ export default {
     sendEmail: 'Invia',
     emailSent: 'Ricevuta inviata.',
     emailError: 'Invio non riuscito, riprova.',
+    splitTitle: 'Dividiamo il conto?',
+    splitHint: 'Pagamento alla romana: dividi il totale in parti uguali.',
+    splitPeopleLabel: 'In quante persone',
+    splitPerPerson: 'A testa',
   },
   request: {
     title: 'Mi può portare...',

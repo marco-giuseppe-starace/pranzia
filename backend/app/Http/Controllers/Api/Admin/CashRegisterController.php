@@ -59,6 +59,26 @@ class CashRegisterController extends Controller
         ]);
     }
 
+    // Rende visibile al cliente un'anteprima del conto (voce "Ricevuta" nel
+    // suo frontend, con il totale e il calcolo del pagamento alla romana)
+    // PRIMA dell'incasso vero e proprio: utile quando i clienti vogliono
+    // vedere quanto tocca a testa mentre decidono come dividersi il conto.
+    // Non tocca paid_at: il tavolo resta "da incassare" in questa lista
+    // finche' lo staff non preme "Incassa".
+    public function sendReceipt(PayTableSessionRequest $request, TableSession $tableSession): JsonResponse
+    {
+        if ($tableSession->status !== TableSessionStatus::Active) {
+            throw new TableSessionNotActiveException();
+        }
+
+        $tableSession->update([
+            'receipt_sent_at' => now(),
+            'guests' => $request->integer('guests', $tableSession->guests ?? 1),
+        ]);
+
+        return response()->json(['receipt_sent' => true]);
+    }
+
     private function todayTotal(): string
     {
         return (string) Order::whereHas(

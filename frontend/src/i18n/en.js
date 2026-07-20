@@ -76,6 +76,8 @@ export default {
   },
   receipt: {
     title: 'Receipt',
+    previewTitle: 'Bill',
+    previewHint: 'Not paid yet: show this to the staff to pay.',
     itemsSubtotal: 'Items subtotal',
     coverCharge: 'Cover charge',
     downloadPdf: 'Download PDF',
@@ -84,6 +86,10 @@ export default {
     sendEmail: 'Send',
     emailSent: 'Receipt sent.',
     emailError: 'Sending failed, please try again.',
+    splitTitle: 'Split the bill?',
+    splitHint: 'Even split: divide the total equally.',
+    splitPeopleLabel: 'How many people',
+    splitPerPerson: 'Per person',
   },
   request: {
     title: 'Can I get...',

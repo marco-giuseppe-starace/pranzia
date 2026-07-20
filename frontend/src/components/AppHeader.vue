@@ -38,7 +38,7 @@ onUnmounted(() => clearInterval(pollTimer))
         {{ t('nav.cart') }}
         <span v-if="cart.count > 0" class="cart-badge">{{ cart.count }}</span>
       </RouterLink>
-      <RouterLink v-if="session.paid" to="/receipt">{{ t('nav.receipt') }}</RouterLink>
+      <RouterLink v-if="session.paid || session.receiptSent" to="/receipt">{{ t('nav.receipt') }}</RouterLink>
     </nav>
 
     <button

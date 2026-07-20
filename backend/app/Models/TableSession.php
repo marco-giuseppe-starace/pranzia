@@ -12,12 +12,13 @@ class TableSession extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['table_id', 'language', 'status', 'started_at', 'paid_at', 'guests'];
+    protected $fillable = ['table_id', 'language', 'status', 'started_at', 'paid_at', 'receipt_sent_at', 'guests'];
 
     protected $casts = [
         'status' => TableSessionStatus::class,
         'started_at' => 'datetime',
         'paid_at' => 'datetime',
+        'receipt_sent_at' => 'datetime',
     ];
 
     public function table(): BelongsTo

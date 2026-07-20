@@ -66,6 +66,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/tables/{table}/close-session', [AdminTableController::class, 'closeSession']);
         Route::get('/cash-register', [CashRegisterController::class, 'index']);
         Route::post('/cash-register/{tableSession}/pay', [CashRegisterController::class, 'pay']);
+        Route::post('/cash-register/{tableSession}/send-receipt', [CashRegisterController::class, 'sendReceipt']);
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::put('/settings', [SettingsController::class, 'update']);
         Route::get('/service-requests', [AdminServiceRequestController::class, 'index']);

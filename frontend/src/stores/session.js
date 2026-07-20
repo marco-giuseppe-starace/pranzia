@@ -22,6 +22,10 @@ export const useSessionStore = defineStore('session', {
     // inserisce i coperti), un valore in cache in localStorage rischierebbe
     // di restare vecchio per sempre su quel browser.
     paid: false,
+    // true = lo staff ha inviato un'anteprima del conto dalla cassa (prima
+    // ancora dell'incasso vero e proprio): fa comparire la voce "Ricevuta"
+    // anche se paid e' ancora false.
+    receiptSent: false,
     // null = non ancora inseriti dal cliente: fa comparire il modal
     // bloccante prima di poter ordinare (vedi GuestsModal.vue).
     guests: null,
@@ -32,11 +36,12 @@ export const useSessionStore = defineStore('session', {
     ...loadPersisted(),
   }),
   actions: {
-    setSession({ id, table_id: tableId, table_number: tableNumber, paid, guests }) {
+    setSession({ id, table_id: tableId, table_number: tableNumber, paid, receipt_sent: receiptSent, guests }) {
       this.sessionId = id
       this.tableId = tableId
       this.tableNumber = tableNumber
       this.paid = paid ?? false
+      this.receiptSent = receiptSent ?? false
       this.guests = guests ?? null
       this.persist()
     },
@@ -60,6 +65,7 @@ export const useSessionStore = defineStore('session', {
       const response = await api.get(`/sessions/${requestedFor}/status`)
       if (this.sessionId !== requestedFor) return
       this.paid = response.paid
+      this.receiptSent = response.receipt_sent
       this.guests = response.guests
     },
     async updateGuests(guests) {
