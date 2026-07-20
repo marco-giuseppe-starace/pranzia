@@ -88,6 +88,7 @@ export default {
     send: 'Send',
     yourRequests: 'Your requests',
     pending: 'On its way',
+    pendingBill: 'Requested',
     done: 'Done',
     types: {
       glass: 'A glass',

@@ -88,6 +88,7 @@ export default {
     send: 'Invia',
     yourRequests: 'Le tue richieste',
     pending: 'In arrivo',
+    pendingBill: 'Richiesto',
     done: 'Fatto',
     types: {
       glass: 'Un bicchiere',

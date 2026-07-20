@@ -65,6 +65,14 @@ function requestLabel(request) {
   return request.type === 'other' ? request.note : t(`request.types.${request.type}`)
 }
 
+// "In arrivo" ha senso per un oggetto fisico (un bicchiere, il sale...),
+// ma suona strano per il conto prima ancora che lo staff lo veda: li' usa
+// un testo dedicato.
+function statusLabel(request) {
+  if (request.status !== 'pending') return t('request.done')
+  return request.type === 'bill' ? t('request.pendingBill') : t('request.pending')
+}
+
 onMounted(() => {
   loadRequests()
   // Cosi' il cliente vede da solo quando lo staff ha "fatto" la
@@ -109,7 +117,7 @@ onUnmounted(() => clearInterval(pollTimer))
       <ul>
         <li v-for="r in requests" :key="r.id" :class="r.status">
           <span>{{ requestLabel(r) }}</span>
-          <span class="status">{{ r.status === 'pending' ? t('request.pending') : t('request.done') }}</span>
+          <span class="status">{{ statusLabel(r) }}</span>
         </li>
       </ul>
     </section>
