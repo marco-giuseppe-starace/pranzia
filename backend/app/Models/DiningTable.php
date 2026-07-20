@@ -26,10 +26,20 @@ class DiningTable extends Model
 
     // Usata dalla dashboard admin per sapere se il tavolo e' "occupato"
     // (ha una sessione cliente ancora aperta) o "libero".
+    //
+    // Il vincolo sullo status va passato come constraint di ofMany(), non
+    // incatenato con un .where() prima di latestOfMany(): quest'ultima forma
+    // calcola il MAX(started_at) su *tutte* le sessioni del tavolo a
+    // prescindere dallo stato, e filtra per status solo dopo — quindi se la
+    // sessione piu' recente in assoluto e' chiusa, la relazione restituisce
+    // null anche quando esiste una sessione piu' vecchia ancora attiva,
+    // facendo risultare "libero" un tavolo che in realta' e' occupato.
     public function activeSession(): HasOne
     {
         return $this->hasOne(TableSession::class, 'table_id')
-            ->where('status', TableSessionStatus::Active)
-            ->latestOfMany('started_at');
+            ->ofMany(
+                ['started_at' => 'max'],
+                fn ($query) => $query->where('status', TableSessionStatus::Active)
+            );
     }
 }
