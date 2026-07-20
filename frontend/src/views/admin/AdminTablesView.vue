@@ -59,8 +59,9 @@ onUnmounted(() => clearInterval(pollTimer))
       Chiudi la sessione di un tavolo quando i clienti se ne vanno: cosi' la
       prossima scansione dello stesso QR apre una sessione nuova, invece di
       mostrare ai clienti successivi il carrello e lo storico ordini di chi
-      era seduto prima. Un tavolo va prima incassato da "In cassa": non si
-      puo' chiudere un tavolo occupato non ancora pagato.
+      era seduto prima. Un tavolo va prima incassato da "In cassa" e non deve
+      avere ordini ancora "in attesa"/"in preparazione" in Ordini: non si
+      puo' chiudere un tavolo non ancora pagato o con ordini non serviti.
     </p>
 
     <p v-if="error" class="error">{{ error }}</p>
