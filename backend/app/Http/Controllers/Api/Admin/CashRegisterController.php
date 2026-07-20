@@ -45,9 +45,12 @@ class CashRegisterController extends Controller
             throw new TableSessionNotActiveException();
         }
 
+        // Il cliente li inserisce gia' prima di ordinare (vedi
+        // SessionController::updateGuests): qui e' solo un'eventuale
+        // correzione dello staff, non piu' il valore di partenza.
         $tableSession->update([
             'paid_at' => now(),
-            'guests' => $request->integer('guests', 1),
+            'guests' => $request->integer('guests', $tableSession->guests ?? 1),
         ]);
 
         return response()->json([

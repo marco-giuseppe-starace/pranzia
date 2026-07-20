@@ -12,11 +12,12 @@ const { t } = useI18n()
 let pollTimer = null
 
 onMounted(() => {
-  session.refreshPaidStatus()
+  session.refreshStatus()
   // Polling leggero: la voce "Ricevuta" deve comparire da sola non
-  // appena lo staff incassa il tavolo, senza che il cliente debba
-  // ricaricare la pagina.
-  pollTimer = setInterval(session.refreshPaidStatus, 10_000)
+  // appena lo staff incassa il tavolo (e i coperti aggiornarsi se li
+  // inserisce un altro telefono dello stesso tavolo), senza che il
+  // cliente debba ricaricare la pagina.
+  pollTimer = setInterval(session.refreshStatus, 10_000)
 })
 
 onUnmounted(() => clearInterval(pollTimer))
@@ -39,6 +40,15 @@ onUnmounted(() => clearInterval(pollTimer))
       </RouterLink>
       <RouterLink v-if="session.paid" to="/receipt">{{ t('nav.receipt') }}</RouterLink>
     </nav>
+
+    <button
+      v-if="session.guests !== null"
+      type="button"
+      class="guests-indicator"
+      @click="session.guestsModalForceOpen = true"
+    >
+      <span aria-hidden="true">👥</span> {{ session.guests }}
+    </button>
 
     <LanguageSwitcher />
   </header>
@@ -110,5 +120,17 @@ nav a.router-link-active {
   padding: 0 0.4rem;
   font-size: 0.75rem;
   margin-left: 0.25rem;
+}
+
+.guests-indicator {
+  background: #fdf1de;
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: #412402;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
 }
 </style>

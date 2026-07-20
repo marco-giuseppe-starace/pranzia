@@ -3,6 +3,7 @@ import { onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
+import GuestsModal from './components/GuestsModal.vue'
 import { useCartStore, cartStorageKey } from './stores/cart.js'
 import { useSessionStore } from './stores/session.js'
 
@@ -11,6 +12,13 @@ import { useSessionStore } from './stores/session.js'
 // ha ancora una sessione tavolo attiva, quindi niente header nemmeno li'.
 const route = useRoute()
 const showHeader = () => route.path !== '/' && !route.path.startsWith('/admin')
+
+// Stesse rotte dell'header cliente: il modal coperti non ha senso in
+// admin/home (nessuna sessione tavolo attiva li').
+const showGuestsModal = () => {
+  if (!showHeader() || !session.sessionId) return false
+  return session.guests === null || session.guestsModalForceOpen
+}
 
 // Se piu' tab condividono lo stesso storage (stesso browser, stessa
 // sessione: es. piu' tab aperte per errore, o test con piu' finestre in
@@ -34,4 +42,5 @@ onUnmounted(() => window.removeEventListener('storage', handleStorage))
   <AppHeader v-if="showHeader()" />
   <RouterView />
   <ConfirmDialog />
+  <GuestsModal v-if="showGuestsModal()" :dismissable="session.guests !== null" />
 </template>

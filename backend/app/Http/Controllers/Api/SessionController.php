@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\TableSessionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSessionRequest;
+use App\Http\Requests\UpdateSessionGuestsRequest;
 use App\Http\Resources\TableSessionResource;
 use App\Models\DiningTable;
 use App\Models\TableSession;
@@ -44,11 +45,29 @@ class SessionController extends Controller
         return TableSessionResource::make($session)->response();
     }
 
-    // Interrogato dal frontend cliente (polling leggero) per sapere quando
-    // lo staff ha incassato il tavolo, cosi' da mostrare la voce
-    // "Ricevuta" solo a quel punto.
+    // Interrogato dal frontend cliente per sapere quando lo staff ha
+    // incassato il tavolo (mostra "Ricevuta") e se i coperti sono gia'
+    // stati inseriti (guests null = non ancora, mostra il modal
+    // bloccante prima di poter ordinare).
     public function status(TableSession $tableSession): JsonResponse
     {
-        return response()->json(['paid' => (bool) $tableSession->paid_at]);
+        return response()->json([
+            'paid' => (bool) $tableSession->paid_at,
+            'guests' => $tableSession->guests,
+        ]);
+    }
+
+    // Il cliente inserisce (o corregge) quante persone sono al tavolo,
+    // prima ancora di ordinare. Lo staff puo' comunque correggerlo al
+    // momento dell'incasso (vedi CashRegisterController::pay).
+    public function updateGuests(UpdateSessionGuestsRequest $request, TableSession $tableSession): JsonResponse
+    {
+        if ($tableSession->status !== TableSessionStatus::Active) {
+            return response()->json(['message' => 'La sessione non e\' attiva.'], 422);
+        }
+
+        $tableSession->update(['guests' => $request->integer('guests')]);
+
+        return response()->json(['guests' => $tableSession->guests]);
     }
 }

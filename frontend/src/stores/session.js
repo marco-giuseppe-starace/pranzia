@@ -17,18 +17,27 @@ export const useSessionStore = defineStore('session', {
     tableId: null,
     tableNumber: null,
     language: 'it',
-    // Non persistito: va sempre riletto dal server (cambia quando lo
-    // staff incassa da "In cassa"), un valore in cache in localStorage
-    // rischierebbe di restare "non pagato" per sempre su quel browser.
+    // Nessuno dei due e' persistito: vanno sempre riletti dal server (cambiano
+    // quando lo staff incassa, o quando un altro telefono sullo stesso tavolo
+    // inserisce i coperti), un valore in cache in localStorage rischierebbe
+    // di restare vecchio per sempre su quel browser.
     paid: false,
+    // null = non ancora inseriti dal cliente: fa comparire il modal
+    // bloccante prima di poter ordinare (vedi GuestsModal.vue).
+    guests: null,
+    // true = riapre il modal per correggere un valore gia' inserito
+    // (stavolta annullabile): impostato dal pulsante "modifica" in
+    // AppHeader.vue, letto da GuestsModal.vue in App.vue.
+    guestsModalForceOpen: false,
     ...loadPersisted(),
   }),
   actions: {
-    setSession({ id, table_id: tableId, table_number: tableNumber, paid }) {
+    setSession({ id, table_id: tableId, table_number: tableNumber, paid, guests }) {
       this.sessionId = id
       this.tableId = tableId
       this.tableNumber = tableNumber
       this.paid = paid ?? false
+      this.guests = guests ?? null
       this.persist()
     },
     setLanguage(language) {
@@ -37,11 +46,17 @@ export const useSessionStore = defineStore('session', {
     },
     // Interrogato a intervalli dal componente header (vedi AppHeader.vue)
     // per mostrare la voce "Ricevuta" non appena lo staff incassa il
-    // tavolo, senza bisogno che il cliente ricarichi la pagina.
-    async refreshPaidStatus() {
+    // tavolo, e per sapere se un altro telefono dello stesso tavolo ha
+    // gia' inserito i coperti.
+    async refreshStatus() {
       if (!this.sessionId) return
       const response = await api.get(`/sessions/${this.sessionId}/status`)
       this.paid = response.paid
+      this.guests = response.guests
+    },
+    async updateGuests(guests) {
+      await api.patch(`/sessions/${this.sessionId}/guests`, { guests })
+      this.guests = guests
     },
     persist() {
       localStorage.setItem(

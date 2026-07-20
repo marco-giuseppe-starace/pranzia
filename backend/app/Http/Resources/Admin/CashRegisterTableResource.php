@@ -21,6 +21,11 @@ class CashRegisterTableResource extends JsonResource
             // di incassare, tutto cio' che e' stato ordinato va pagato.
             'total' => $session->orders->sum('total'),
             'order_count' => $session->orders->count(),
+            // Gia' inserito dal cliente prima di ordinare (puo' essere
+            // ancora null se e' riuscito ad aggirare il modal, es. una
+            // sessione aperta prima di questa funzione): lo staff lo vede
+            // pre-compilato e puo' comunque correggerlo.
+            'guests' => $session->guests,
         ];
     }
 }

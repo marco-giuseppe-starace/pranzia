@@ -1,4 +1,9 @@
 export default {
+  guests: {
+    title: 'Quanti siete?',
+    hint: 'Serve per calcolare correttamente il coperto sul conto.',
+    confirm: 'Conferma',
+  },
   landing: {
     loading: 'Apertura sessione...',
     error: 'Tavolo non trovato. Chiedi aiuto allo staff.',

@@ -1,4 +1,9 @@
 export default {
+  guests: {
+    title: 'How many are you?',
+    hint: 'Needed to correctly calculate the cover charge on the bill.',
+    confirm: 'Confirm',
+  },
   landing: {
     loading: 'Starting session...',
     error: 'Table not found. Please ask the staff for help.',

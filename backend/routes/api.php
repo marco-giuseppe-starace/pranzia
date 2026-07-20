@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/menu', [MenuController::class, 'index']);
 Route::post('/session', [SessionController::class, 'store']);
 Route::get('/sessions/{tableSession}/status', [SessionController::class, 'status']);
+Route::patch('/sessions/{tableSession}/guests', [SessionController::class, 'updateGuests']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{sessionId}', [OrderController::class, 'show']);
 Route::patch('/orders/{order}/items/{item}', [OrderController::class, 'updateItemNotes']);

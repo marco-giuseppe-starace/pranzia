@@ -16,9 +16,9 @@ const error = ref(null)
 // Id delle sessioni con un incasso in corso: disabilita il relativo
 // pulsante finche' la richiesta non e' completata.
 const payingIds = ref([])
-// Coperti per sessione (session_id -> numero), usati per calcolare il
-// totale coperto nella ricevuta: di default 1, lo staff lo corregge prima
-// di incassare se al tavolo ci sono piu' persone.
+// Coperti per sessione (session_id -> numero): precompilati con quanto
+// gia' inserito dal cliente prima di ordinare (vedi GuestsModal.vue lato
+// cliente), lo staff puo' comunque correggerli prima di incassare.
 const guestsBySession = ref({})
 let pollTimer = null
 
@@ -35,7 +35,7 @@ async function load() {
   todayCount.value = response.today_count
   for (const table of response.tables) {
     if (!(table.session_id in guestsBySession.value)) {
-      guestsBySession.value[table.session_id] = 1
+      guestsBySession.value[table.session_id] = table.guests ?? 1
     }
   }
 }
@@ -86,7 +86,7 @@ onUnmounted(() => clearInterval(pollTimer))
       <li v-for="table in tables" :key="table.session_id" class="table">
         <div class="info">
           <span class="number">Tavolo {{ table.number }}</span>
-          <span class="orders">{{ table.order_count }} ordine{{ table.order_count === 1 ? '' : 'i' }}</span>
+          <span class="orders">{{ table.order_count }} {{ table.order_count === 1 ? 'ordine' : 'ordini' }}</span>
         </div>
         <span class="total">{{ Number(table.total).toFixed(2) }} &euro;</span>
         <label class="guests">
