@@ -90,7 +90,6 @@ export default {
     pending: 'On its way',
     done: 'Done',
     types: {
-      water: 'Water',
       glass: 'A glass',
       salt: 'Salt',
       oil: 'Oil',

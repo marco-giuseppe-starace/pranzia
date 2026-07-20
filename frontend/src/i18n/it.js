@@ -90,7 +90,6 @@ export default {
     pending: 'In arrivo',
     done: 'Fatto',
     types: {
-      water: 'Acqua',
       glass: 'Un bicchiere',
       salt: 'Sale',
       oil: 'Olio',

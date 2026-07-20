@@ -11,7 +11,6 @@ const { t } = useI18n()
 // conferma in piu' — devono essere velocissimi da usare, e' il punto
 // della funzione ("Mi puo' portare...").
 const QUICK_TYPES = [
-  { type: 'water', icon: '💧' },
   { type: 'glass', icon: '🥛' },
   { type: 'salt', icon: '🧂' },
   { type: 'oil', icon: '🫒' },

@@ -8,7 +8,6 @@ const adminAuth = useAdminAuthStore()
 const opts = { token: adminAuth.token }
 
 const TYPE_LABELS = {
-  water: 'Acqua',
   glass: 'Un bicchiere',
   salt: 'Sale',
   oil: 'Olio',
@@ -19,7 +18,6 @@ const TYPE_LABELS = {
 }
 
 const TYPE_ICONS = {
-  water: '💧',
   glass: '🥛',
   salt: '🧂',
   oil: '🫒',
