@@ -80,6 +80,9 @@ onUnmounted(() => clearInterval(pollTimer))
           <span class="number">Tavolo {{ request.table_number }}</span>
           <span class="label">{{ label(request) }}</span>
         </div>
+        <RouterLink v-if="request.type === 'bill'" to="/admin/cash-register" class="cash-register-link">
+          Vai a Incassa
+        </RouterLink>
         <button
           type="button"
           :disabled="resolvingIds.includes(request.id)"
@@ -160,6 +163,17 @@ button {
   padding: 0.4rem 0.85rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.cash-register-link {
+  background: #412402;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 button:disabled {
