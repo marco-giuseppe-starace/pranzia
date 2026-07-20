@@ -12,6 +12,10 @@ class MenuItemResource extends JsonResource
         return [
             'id' => $this->id,
             'category_id' => $this->category_id,
+            // Serve al frontend per capire se e' una bevanda (niente
+            // suggerimento "senza [ingrediente]" nella nota, non ha senso
+            // per un piatto senza ingredienti elencati come "acqua 0,5L").
+            'group' => $this->whenLoaded('category', fn () => $this->category->group),
             'name' => $this->name,
             'description' => $this->description,
             'price' => $this->price,

@@ -38,6 +38,7 @@ export const useCartStore = defineStore('cart', {
           menuItemId: menuItem.id,
           name: menuItem.name,
           description: menuItem.description,
+          group: menuItem.group,
           price: Number(menuItem.price),
           quantity: 1,
           notes,

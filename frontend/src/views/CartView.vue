@@ -16,17 +16,9 @@ const error = ref(null)
 const orders = ref([])
 let pollTimer = null
 
-// Riga nota in modifica (order.id + item.id), e valore in bozza: usati per
-// mostrare l'input inline solo su una nota alla volta.
-const editingItemId = ref(null)
-const noteDraft = ref('')
-const noteError = ref(null)
-const notePlaceholder = ref('')
-
-// Stesso meccanismo ma per le righe ancora nel carrello (non ancora
-// inviate): stato separato da quello sopra, sono due liste diverse e le
-// chiavi (menuItemId vs item.id dell'ordine) potrebbero altrimenti
-// collidere per caso.
+// La nota si puo' modificare solo dal carrello, prima di inviare l'ordine:
+// una volta in attesa in cucina non e' piu' modificabile (rischia di
+// arrivare al cuoco a piatto gia' in preparazione).
 const editingCartItemId = ref(null)
 const cartNoteDraft = ref('')
 const cartNotePlaceholder = ref('')
@@ -52,7 +44,12 @@ function randomIngredientPlaceholder(description) {
 function startEditingCartNote(item) {
   editingCartItemId.value = item.menuItemId
   cartNoteDraft.value = item.notes ?? ''
-  cartNotePlaceholder.value = randomIngredientPlaceholder(item.description)
+  // Per le bevande la descrizione e' spesso solo il formato ("0,44cl"), non
+  // un elenco di ingredienti: suggerire "senza 0,44cl" non ha senso, quindi
+  // niente suggerimento in quel caso (campo senza placeholder).
+  cartNotePlaceholder.value = item.group === 'drink'
+    ? ''
+    : randomIngredientPlaceholder(item.description)
 }
 
 function cancelEditingCartNote() {
@@ -92,30 +89,6 @@ async function loadOrders() {
   if (!session.sessionId) return
   const response = await api.get(`/orders/${session.sessionId}`)
   orders.value = response.data
-}
-
-function startEditingNote(item) {
-  editingItemId.value = item.id
-  noteDraft.value = item.notes ?? ''
-  noteError.value = null
-  notePlaceholder.value = randomIngredientPlaceholder(item.menu_item_description)
-}
-
-function cancelEditingNote() {
-  editingItemId.value = null
-  noteError.value = null
-}
-
-async function saveNote(order, item) {
-  noteError.value = null
-
-  try {
-    await api.patch(`/orders/${order.id}/items/${item.id}`, { notes: noteDraft.value })
-    editingItemId.value = null
-    await loadOrders()
-  } catch (e) {
-    noteError.value = e.message
-  }
 }
 
 onMounted(() => {
@@ -202,27 +175,11 @@ onUnmounted(() => {
           <li v-for="item in order.items" :key="item.id">
             <div class="item-line">
               <span>{{ item.quantity }}x {{ item.menu_item_name }}</span>
-              <button
-                v-if="order.status === 'pending' && editingItemId !== item.id"
-                type="button"
-                class="edit-note"
-                @click="startEditingNote(item)"
-              >
-                <span class="edit-note-icon" aria-hidden="true">&#9998;</span>
-                {{ item.notes ? t('cart.editNote') : t('cart.addNote') }}
-              </button>
             </div>
 
-            <p v-if="item.notes && editingItemId !== item.id" class="notes">{{ item.notes }}</p>
-
-            <div v-if="editingItemId === item.id" class="note-editor">
-              <input v-model="noteDraft" type="text" :placeholder="notePlaceholder" />
-              <button type="button" class="save-note" @click="saveNote(order, item)">{{ t('cart.save') }}</button>
-              <button type="button" class="cancel-note" @click="cancelEditingNote">{{ t('cart.cancel') }}</button>
-            </div>
+            <p v-if="item.notes" class="notes">{{ item.notes }}</p>
           </li>
         </ul>
-        <p v-if="noteError" class="error">{{ noteError }}</p>
         <footer>{{ Number(order.total).toFixed(2) }} &euro;</footer>
       </article>
     </section>

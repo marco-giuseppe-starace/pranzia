@@ -24,6 +24,16 @@ class MenuController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        // La relazione inversa (menuItem->category) non e' stata caricata:
+        // la valorizziamo qui dall'oggetto categoria gia' in memoria (zero
+        // query in piu') cosi' MenuItemResource puo' esporre il "group"
+        // (food/drink/dessert) senza un giro a parte, serve al frontend per
+        // decidere se ha senso suggerire "senza [ingrediente]" nella nota
+        // (per una bevanda no).
+        $categories->each(fn (MenuCategory $category) => $category->menuItems->each(
+            fn ($item) => $item->setRelation('category', $category)
+        ));
+
         if (! empty($excludedAllergenIds)) {
             // Filtro basato solo su dati verificati dallo staff
             // (menu_item_allergens), nessuna chiamata IA coinvolta.
