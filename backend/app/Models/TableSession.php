@@ -34,4 +34,9 @@ class TableSession extends Model
     {
         return $this->hasMany(AiInteraction::class, 'session_id');
     }
+
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'session_id');
+    }
 }

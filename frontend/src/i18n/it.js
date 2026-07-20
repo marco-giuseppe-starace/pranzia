@@ -7,6 +7,7 @@ export default {
     menu: 'Menu',
     chat: 'Chiedi consiglio',
     cart: 'Carrello',
+    request: 'Mi può portare...',
     receipt: 'Ricevuta',
   },
   menu: {
@@ -78,5 +79,25 @@ export default {
     sendEmail: 'Invia',
     emailSent: 'Ricevuta inviata.',
     emailError: 'Invio non riuscito, riprova.',
+  },
+  request: {
+    title: 'Mi può portare...',
+    hint: 'Un tap per avvisare subito lo staff, senza aspettare che passi al tavolo.',
+    otherLabel: 'Altro',
+    otherPlaceholder: 'Es. un tovagliolo in più',
+    send: 'Invia',
+    yourRequests: 'Le tue richieste',
+    pending: 'In arrivo',
+    done: 'Fatto',
+    types: {
+      water: 'Acqua',
+      glass: 'Un bicchiere',
+      salt: 'Sale',
+      oil: 'Olio',
+      napkins: 'Tovaglioli',
+      cutlery: 'Posate',
+      bill: 'Il conto',
+      other: 'Altro',
+    },
   },
 }

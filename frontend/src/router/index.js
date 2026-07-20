@@ -5,6 +5,7 @@ import MenuView from '../views/MenuView.vue'
 import ChatView from '../views/ChatView.vue'
 import CartView from '../views/CartView.vue'
 import ReceiptView from '../views/ReceiptView.vue'
+import RequestView from '../views/RequestView.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminOrdersView from '../views/admin/AdminOrdersView.vue'
 import AdminTablesView from '../views/admin/AdminTablesView.vue'
@@ -12,6 +13,7 @@ import AdminCashRegisterView from '../views/admin/AdminCashRegisterView.vue'
 import AdminMenuView from '../views/admin/AdminMenuView.vue'
 import AdminAiCostsView from '../views/admin/AdminAiCostsView.vue'
 import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
+import AdminServiceRequestsView from '../views/admin/AdminServiceRequestsView.vue'
 import { useAdminAuthStore } from '../stores/adminAuth.js'
 
 const router = createRouter({
@@ -22,6 +24,7 @@ const router = createRouter({
     { path: '/chat', name: 'chat', component: ChatView },
     { path: '/cart', name: 'cart', component: CartView },
     { path: '/receipt', name: 'receipt', component: ReceiptView },
+    { path: '/request', name: 'request', component: RequestView },
     { path: '/admin/login', name: 'admin-login', component: AdminLoginView },
     {
       path: '/admin/orders',
@@ -57,6 +60,12 @@ const router = createRouter({
       path: '/admin/settings',
       name: 'admin-settings',
       component: AdminSettingsView,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/service-requests',
+      name: 'admin-service-requests',
+      component: AdminServiceRequestsView,
       meta: { requiresAdmin: true },
     },
     { path: '/', name: 'home', component: HomeView },

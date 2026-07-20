@@ -7,6 +7,7 @@ export default {
     menu: 'Menu',
     chat: 'Ask for advice',
     cart: 'Cart',
+    request: 'Can I get...',
     receipt: 'Receipt',
   },
   menu: {
@@ -78,5 +79,25 @@ export default {
     sendEmail: 'Send',
     emailSent: 'Receipt sent.',
     emailError: 'Sending failed, please try again.',
+  },
+  request: {
+    title: 'Can I get...',
+    hint: 'One tap to notify staff right away, no need to wait for someone to pass by.',
+    otherLabel: 'Other',
+    otherPlaceholder: 'E.g. an extra napkin',
+    send: 'Send',
+    yourRequests: 'Your requests',
+    pending: 'On its way',
+    done: 'Done',
+    types: {
+      water: 'Water',
+      glass: 'A glass',
+      salt: 'Salt',
+      oil: 'Oil',
+      napkins: 'Napkins',
+      cutlery: 'Cutlery',
+      bill: 'The bill',
+      other: 'Other',
+    },
   },
 }

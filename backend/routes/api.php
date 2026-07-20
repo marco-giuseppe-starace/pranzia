@@ -7,12 +7,14 @@ use App\Http\Controllers\Api\Admin\CashRegisterController;
 use App\Http\Controllers\Api\Admin\MenuCategoryController;
 use App\Http\Controllers\Api\Admin\MenuItemController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Api\Admin\ServiceRequestController as AdminServiceRequestController;
 use App\Http\Controllers\Api\Admin\SettingsController;
 use App\Http\Controllers\Api\Admin\TableController as AdminTableController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReceiptController;
+use App\Http\Controllers\Api\ServiceRequestController;
 use App\Http\Controllers\Api\SessionController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +26,11 @@ Route::get('/sessions/{tableSession}/status', [SessionController::class, 'status
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{sessionId}', [OrderController::class, 'show']);
 Route::patch('/orders/{order}/items/{item}', [OrderController::class, 'updateItemNotes']);
+
+// "Mi puo' portare...": richieste rapide dal tavolo senza passare dal
+// menu/ordine (acqua, bicchiere, sale, conto, ecc.).
+Route::post('/service-requests', [ServiceRequestController::class, 'store']);
+Route::get('/service-requests/{sessionId}', [ServiceRequestController::class, 'index']);
 
 // Ricevuta: disponibile solo dopo l'incasso (vedi
 // ReceiptController::receiptData / ReceiptNotAvailableException).
@@ -60,5 +67,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/cash-register/{tableSession}/pay', [CashRegisterController::class, 'pay']);
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::put('/settings', [SettingsController::class, 'update']);
+        Route::get('/service-requests', [AdminServiceRequestController::class, 'index']);
+        Route::patch('/service-requests/{serviceRequest}/resolve', [AdminServiceRequestController::class, 'resolve']);
     });
 });
