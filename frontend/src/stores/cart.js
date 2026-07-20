@@ -37,11 +37,19 @@ export const useCartStore = defineStore('cart', {
         this.items.push({
           menuItemId: menuItem.id,
           name: menuItem.name,
+          description: menuItem.description,
           price: Number(menuItem.price),
           quantity: 1,
           notes,
         })
       }
+      this.persist()
+    },
+    updateNotes(menuItemId, notes) {
+      const item = this.items.find((item) => item.menuItemId === menuItemId)
+      if (!item) return
+
+      item.notes = notes
       this.persist()
     },
     updateQuantity(menuItemId, quantity) {

@@ -23,11 +23,18 @@ const noteDraft = ref('')
 const noteError = ref(null)
 const notePlaceholder = ref('')
 
+// Stesso meccanismo ma per le righe ancora nel carrello (non ancora
+// inviate): stato separato da quello sopra, sono due liste diverse e le
+// chiavi (menuItemId vs item.id dell'ordine) potrebbero altrimenti
+// collidere per caso.
+const editingCartItemId = ref(null)
+const cartNoteDraft = ref('')
+const cartNotePlaceholder = ref('')
+
 // Suggerisce come esempio un ingrediente vero del piatto (preso dalla sua
 // descrizione), invece di un placeholder fisso sempre uguale per tutti i
 // piatti: piu' utile e concreto per il cliente che vuole togliere qualcosa.
-function randomIngredientPlaceholder(item) {
-  const description = item.menu_item_description
+function randomIngredientPlaceholder(description) {
   if (!description) return t('cart.notePlaceholder')
 
   const ingredients = description
@@ -40,6 +47,21 @@ function randomIngredientPlaceholder(item) {
 
   const pick = ingredients[Math.floor(Math.random() * ingredients.length)]
   return `${t('cart.notePlaceholderPrefix')} ${pick}`
+}
+
+function startEditingCartNote(item) {
+  editingCartItemId.value = item.menuItemId
+  cartNoteDraft.value = item.notes ?? ''
+  cartNotePlaceholder.value = randomIngredientPlaceholder(item.description)
+}
+
+function cancelEditingCartNote() {
+  editingCartItemId.value = null
+}
+
+function saveCartNote(item) {
+  cart.updateNotes(item.menuItemId, cartNoteDraft.value)
+  editingCartItemId.value = null
 }
 
 async function submit() {
@@ -76,7 +98,7 @@ function startEditingNote(item) {
   editingItemId.value = item.id
   noteDraft.value = item.notes ?? ''
   noteError.value = null
-  notePlaceholder.value = randomIngredientPlaceholder(item)
+  notePlaceholder.value = randomIngredientPlaceholder(item.menu_item_description)
 }
 
 function cancelEditingNote() {
@@ -117,26 +139,48 @@ onUnmounted(() => {
 
     <ul v-if="cart.items.length" class="lines">
       <li v-for="item in cart.items" :key="item.menuItemId">
-        <span class="name">{{ item.name }}</span>
+        <div class="line-row">
+          <span class="name">{{ item.name }}</span>
 
-        <div class="stepper">
-          <button
-            type="button"
-            class="step"
-            :aria-label="t('menu.decrease')"
-            @click="cart.updateQuantity(item.menuItemId, item.quantity - 1)"
-          >&minus;</button>
-          <span class="qty">{{ item.quantity }}</span>
-          <button
-            type="button"
-            class="step"
-            :aria-label="t('menu.increase')"
-            @click="cart.updateQuantity(item.menuItemId, item.quantity + 1)"
-          >+</button>
+          <div class="stepper">
+            <button
+              type="button"
+              class="step"
+              :aria-label="t('menu.decrease')"
+              @click="cart.updateQuantity(item.menuItemId, item.quantity - 1)"
+            >&minus;</button>
+            <span class="qty">{{ item.quantity }}</span>
+            <button
+              type="button"
+              class="step"
+              :aria-label="t('menu.increase')"
+              @click="cart.updateQuantity(item.menuItemId, item.quantity + 1)"
+            >+</button>
+          </div>
+
+          <span class="price">{{ (item.price * item.quantity).toFixed(2) }} &euro;</span>
+          <button type="button" class="remove" @click="cart.remove(item.menuItemId)">{{ t('cart.remove') }}</button>
         </div>
 
-        <span class="price">{{ (item.price * item.quantity).toFixed(2) }} &euro;</span>
-        <button type="button" class="remove" @click="cart.remove(item.menuItemId)">{{ t('cart.remove') }}</button>
+        <div class="note-row">
+          <button
+            v-if="editingCartItemId !== item.menuItemId"
+            type="button"
+            class="edit-note"
+            @click="startEditingCartNote(item)"
+          >
+            <span class="edit-note-icon" aria-hidden="true">&#9998;</span>
+            {{ item.notes ? t('cart.editNote') : t('cart.addNote') }}
+          </button>
+
+          <p v-if="item.notes && editingCartItemId !== item.menuItemId" class="notes">{{ item.notes }}</p>
+
+          <div v-if="editingCartItemId === item.menuItemId" class="note-editor">
+            <input v-model="cartNoteDraft" type="text" :placeholder="cartNotePlaceholder" />
+            <button type="button" class="save-note" @click="saveCartNote(item)">{{ t('cart.save') }}</button>
+            <button type="button" class="cancel-note" @click="cancelEditingCartNote">{{ t('cart.cancel') }}</button>
+          </div>
+        </div>
       </li>
     </ul>
 
@@ -212,17 +256,24 @@ h1 {
 }
 
 .lines li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.line-row {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .lines .name {
   flex: 1;
   font-weight: 600;
   color: #1a1a1a;
+}
+
+.note-row {
+  margin-top: 0.35rem;
 }
 
 .stepper {
