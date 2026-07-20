@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
+use App\Enums\OrderStatus;
 use App\Enums\TableSessionStatus;
+use App\Exceptions\TableSessionHasUnservedOrdersException;
 use App\Exceptions\TableSessionNotPaidException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\TableResource;
@@ -22,14 +24,20 @@ class TableController extends Controller
     }
 
     // Chiude (libera) il tavolo quando i clienti se ne vanno fisicamente:
-    // richiede che la sessione sia gia' stata incassata da "In cassa",
-    // altrimenti lo staff rischierebbe di liberare un tavolo non pagato.
+    // richiede che la sessione sia gia' stata incassata da "In cassa" e che
+    // non restino ordini non "Servito", altrimenti l'ordine resterebbe
+    // "orfano" (tavolo libero ma ordine ancora in attesa/in preparazione,
+    // mescolato in dashboard cucina con quelli di un cliente successivo).
     public function closeSession(DiningTable $table): JsonResponse
     {
         $session = $table->activeSession;
 
         if ($session && ! $session->paid_at) {
             throw new TableSessionNotPaidException();
+        }
+
+        if ($session && $session->orders()->where('status', '!=', OrderStatus::Served->value)->exists()) {
+            throw new TableSessionHasUnservedOrdersException();
         }
 
         $session?->update(['status' => TableSessionStatus::Closed]);
