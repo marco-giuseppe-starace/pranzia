@@ -56,8 +56,11 @@ onMounted(load)
 
       <ul class="lines">
         <li v-for="(item, index) in receipt.items" :key="index">
-          <span class="name">{{ item.quantity }}x {{ item.name }}</span>
-          <span class="price">{{ item.total.toFixed(2) }} &euro;</span>
+          <div class="line-row">
+            <span class="name">{{ item.quantity }}x {{ item.name }}</span>
+            <span class="price">{{ item.total.toFixed(2) }} &euro;</span>
+          </div>
+          <p v-if="item.notes" class="notes">{{ item.notes }}</p>
         </li>
       </ul>
 
@@ -118,11 +121,14 @@ h1 {
 }
 
 .lines li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.line-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .lines .name {
@@ -131,6 +137,13 @@ h1 {
 
 .lines .price {
   color: #555;
+}
+
+.notes {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #8a7654;
+  font-style: italic;
 }
 
 .totals {

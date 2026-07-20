@@ -52,6 +52,7 @@ class ReceiptController extends Controller
             fn ($order) => $order->items->map(fn ($item) => [
                 'name' => $item->menuItem->name,
                 'quantity' => $item->quantity,
+                'notes' => $item->notes,
                 'unit_price' => (float) $item->price_at_order,
                 'total' => round((float) $item->price_at_order * $item->quantity, 2),
             ])

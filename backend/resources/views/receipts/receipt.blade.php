@@ -8,8 +8,9 @@
         h1 { font-size: 18px; margin: 0 0 4px; }
         .meta { color: #555; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        th, td { text-align: left; padding: 4px 0; border-bottom: 1px solid #eee; }
+        th, td { text-align: left; padding: 4px 0; border-bottom: 1px solid #eee; vertical-align: top; }
         th.num, td.num { text-align: right; }
+        .item-notes { color: #777; font-size: 11px; font-style: italic; margin-top: 2px; }
         tfoot td { border-bottom: none; padding-top: 6px; }
         .total-row td { font-weight: bold; font-size: 14px; border-top: 2px solid #1a1a1a; padding-top: 8px; }
     </style>
@@ -32,7 +33,12 @@
         <tbody>
             @foreach ($items as $item)
                 <tr>
-                    <td>{{ $item['name'] }}</td>
+                    <td>
+                        {{ $item['name'] }}
+                        @if (!empty($item['notes']))
+                            <div class="item-notes">{{ $item['notes'] }}</div>
+                        @endif
+                    </td>
                     <td class="num">{{ $item['quantity'] }}</td>
                     <td class="num">{{ number_format($item['unit_price'], 2, ',', '.') }} &euro;</td>
                     <td class="num">{{ number_format($item['total'], 2, ',', '.') }} &euro;</td>
